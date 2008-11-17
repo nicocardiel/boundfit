@@ -1,0 +1,92 @@
+C Funcion para minimizar las coordenadas Y de todos los Knots
+        REAL FUNCTION YFUNK_SPLFIT(X)
+        IMPLICIT NONE
+        INCLUDE 'ndatamax.inc'
+        INCLUDE 'nknotsmax.inc'
+        REAL X(NKNOTSMAX)
+C
+        INTEGER I
+        INTEGER NF,ND
+        INTEGER I0
+        REAL XF(NDATAMAX),YF(NDATAMAX),EYF(NDATAMAX),YF0
+        REAL XDD(NKNOTSMAX)
+        REAL S(NKNOTSMAX),A(NKNOTSMAX),B(NKNOTSMAX),C(NKNOTSMAX)
+        REAL WEIGHT,POWER,TSIGMA
+        REAL W1,W2
+        DOUBLE PRECISION F
+        LOGICAL LUP
+C
+        COMMON/BLKSPLFUNK1/NF
+        COMMON/BLKSPLFUNK2/XF,YF,EYF
+        COMMON/BLKSPLFUNK3/ND
+        COMMON/BLKSPLFUNK4/XDD
+        COMMON/BLKSPLFUNK7/WEIGHT,POWER,TSIGMA
+        COMMON/BLKSPLFUNK8/LUP
+c------------------------------------------------------------------------------
+C comprobacion inicial
+        IF(TSIGMA.LT.0.0)THEN
+          WRITE(*,101) 'FATAL ERROR: invalid TSIGMA (must be >= 0.0)'
+          WRITE(*,100) 'TSGIMA='
+          WRITE(*,*) TSIGMA
+          STOP
+        END IF
+C------------------------------------------------------------------------------
+        CALL CUBSPL(XDD,X,ND,1,S,A,B,C)                                !IMODE=1
+C------------------------------------------------------------------------------
+        IF(TSIGMA.EQ.0.0)THEN !.....................................sin errores
+          IF(LUP)THEN
+            W1=1.0
+            W2=WEIGHT
+          ELSE
+            W1=WEIGHT
+            W2=1.0
+          END IF
+          F=0.D0
+          I0=1                   !la primera vez busca en el inicio de la tabla
+          DO I=1,NF
+            CALL CUBSPLX(XDD,X,A,B,C,ND,I0,XF(I),YF0)
+            IF(YF0.GE.YF(I))THEN
+              F=F+DBLE(W1)*((DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))
+            ELSE
+              F=F+DBLE(W2)*((DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))
+            END IF
+          END DO
+        ELSE !......................................................con errores
+          IF(LUP)THEN
+            !aqui tenemos que usar ABS() porque podemos tener argumentos
+            !negativos debido a que el IF() lo estamos calculando
+            !considerando las barras de error
+            W1=1.0
+            W2=WEIGHT
+            F=0.D0
+            I0=1                 !la primera vez busca en el inicio de la tabla
+            DO I=1,NF
+              CALL CUBSPLX(XDD,X,A,B,C,ND,I0,XF(I),YF0)
+              IF(YF0.GE.YF(I)-TSIGMA*EYF(I))THEN !........aqui usamos signo "-"
+                F=F+DBLE(W1)*(ABS(DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))
+              ELSE
+                F=F+DBLE(W2)*(ABS(DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))
+              END IF
+            END DO
+          ELSE
+            W1=WEIGHT
+            W2=1.0
+            F=0.D0
+            I0=1                 !la primera vez busca en el inicio de la tabla
+            DO I=1,NF
+              CALL CUBSPLX(XDD,X,A,B,C,ND,I0,XF(I),YF0)
+              IF(YF0.GE.YF(I)+TSIGMA*EYF(I))THEN !........aqui usamos signo "+"
+                F=F+DBLE(W1)*(ABS(DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))
+              ELSE
+                F=F+DBLE(W2)*(ABS(DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))
+              END IF
+            END DO
+          END IF
+        END IF
+C------------------------------------------------------------------------------
+        F=F/DBLE(NF)
+        YFUNK_SPLFIT=REAL(F)
+C
+100     FORMAT(A,$)
+101     FORMAT(A)
+        END
