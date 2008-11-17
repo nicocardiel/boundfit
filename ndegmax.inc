@@ -1,0 +1,2 @@
+        INTEGER NDEGMAX
+        PARAMETER (NDEGMAX=16)
