@@ -1,9 +1,26 @@
+C------------------------------------------------------------------------------
+C Copyright 2008 Nicolas Cardiel
 C
-C******************************************************************************
+C This file is part of BoundFit.
+C 
+C BoundFit is free software: you can redistribute it and/or modify
+C it under the terms of the GNU General Public License as published by
+C the Free Software Foundation, either version 3 of the License, or
+C (at your option) any later version.
+C 
+C BoundFit is distributed in the hope that it will be useful,
+C but WITHOUT ANY WARRANTY; without even the implied warranty of
+C MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+C GNU General Public License for more details.
+C 
+C You should have received a copy of the GNU General Public License
+C along with BoundFit. If not, see <http://www.gnu.org/licenses/>.
+C------------------------------------------------------------------------------
 C Extrae de la cadena CLINEA, el numero ubicado en la columna N-esima. Esta
 C funcion no destruye la informacion de la variable CLINEA. Si hay problemas
 C al leer, ISTATUS retorna 0. Si no se puede leer el numero (por la presencia
 C de caracteres no numericos, por ejemplo) ISTATUS retorna -1.
+C------------------------------------------------------------------------------
         REAL FUNCTION FEXTRAE(CLINEA,N,ISTATUS)
         IMPLICIT NONE
         CHARACTER*(*) CLINEA
