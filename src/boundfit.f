@@ -74,13 +74,13 @@ C common blocks
         COMMON/BLKOUT_XY/XP,YP
 C------------------------------------------------------------------------------
 C welcome message
-        WRITE(*,101) '************************************************'
-        WRITE(*,101) '       Welcome to boundfit '//
+        WRITE(*,101) '***********************************************'
+        WRITE(*,101) '      Welcome to boundfit '//
      +   '(version '//VERSION//')'
-        WRITE(*,101) '------------------------------------------------'
-        WRITE(*,101) 'For more details see Cardiel (2009) or visit:'
-        WRITE(*,101) 'http://www.ucm.es/info/Astrof/software/boundfit/'
-        WRITE(*,101) '************************************************'
+        WRITE(*,101) '-----------------------------------------------'
+        WRITE(*,101) ' For more details see Cardiel (2009) or visit:'
+        WRITE(*,101) '   http://guaix.fis.ucm.es/projects/boundfit'
+        WRITE(*,101) '***********************************************'
         WRITE(*,*)
 C------------------------------------------------------------------------------
 C read data file
