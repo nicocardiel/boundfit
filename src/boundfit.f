@@ -181,7 +181,7 @@ C..............................................................................
           WRITE(*,100) 'YRMSTOL for DOWNHILL '
           YRMSTOL=READF_B('1E-5')
           WRITE(*,100) 'NEVALMAX for DOWNHILL '
-          NEVALMAX=READILIM_B('1000',10,1000000)
+          NEVALMAX=READILIM_B('1000',1,1000000)
           !realizamos el ajuste
           CALL PSEUDOFIT(XDATA,YDATA,EYDATA,NDATABUFF,NTERMS,YRMSTOL,
      +     NEVALMAX,WEIGHT,POWER,LUP,TSIGMA,A)
@@ -229,7 +229,7 @@ C..............................................................................
           WRITE(*,100) 'YRMSTOL for DOWNHILL '
           YRMSTOL=READF_B('1E-5')
           WRITE(*,100) 'NEVALMAX for DOWNHILL '
-          NEVALMAX=READILIM_B('1000',10,1000000)
+          NEVALMAX=READILIM_B('1000',1,1000000)
           !semilla para numeros aleatorios
           WRITE(*,101) '(Note: NSEED must be > 0 to make the '//
      +     'merging-knots process repeatable)'
