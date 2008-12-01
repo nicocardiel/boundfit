@@ -21,6 +21,7 @@ C------------------------------------------------------------------------------
 C included files
         INCLUDE 'version.inc'
         INCLUDE 'ndatamax.inc'
+        INCLUDE 'nfixedmax.inc'
         INCLUDE 'nknotsmax.inc'
         INCLUDE 'ndegmax.inc'
 C additional parameters
@@ -39,15 +40,22 @@ C variables
         INTEGER ISTATUS
         INTEGER NDATABUFF
         INTEGER NTERMS
+        INTEGER NFIXED
         INTEGER ILUP
         INTEGER NEVALMAX
         INTEGER IKNOT,NKNOTS
         INTEGER NSEED
         INTEGER NDATA
         INTEGER I0SPL
-        REAL XDATA(NDATAMAX)
-        REAL YDATA(NDATAMAX)
-        REAL EYDATA(NDATAMAX)
+        !nota: duplicamos las variables porque la re-normalizacion
+        !dentro de POLFIT puede causar diferencias al repetir los
+        !ajustes sobre los mismos datos; de esta forma conservamos
+        !siempre una version original de los mismos.
+        REAL XDATA(NDATAMAX),XDATA_(NDATAMAX)
+        REAL YDATA(NDATAMAX),YDATA_(NDATAMAX)
+        REAL EYDATA(NDATAMAX),EYDATA_(NDATAMAX)
+        REAL XFIXED(NFIXEDMAX),YFIXED(NFIXEDMAX)
+        REAL FIXEDWEIGHT
         REAL XMINBUFF,XMAXBUFF
         REAL YMINBUFF,YMAXBUFF
         REAL WEIGHT,POWER
@@ -68,10 +76,13 @@ C variables
 C common blocks
         COMMON/BLKINFILE/INFILE
         COMMON/BLKNDATABUFF/NDATABUFF
-        COMMON/BLKXYDATA/XDATA,YDATA,EYDATA
+        COMMON/BLKXYDATA/XDATA_,YDATA_,EYDATA_
         COMMON/BLKMINMAXBUFF/XMINBUFF,XMAXBUFF,YMINBUFF,YMAXBUFF
         COMMON/BLKOUT_NDATA/NDATA
         COMMON/BLKOUT_XY/XP,YP
+        COMMON/BLKFIXED1/NFIXED
+        COMMON/BLKFIXED2/XFIXED,YFIXED
+        COMMON/BLKFIXED3/FIXEDWEIGHT
 C------------------------------------------------------------------------------
 C welcome message
         WRITE(*,101) '***********************************************'
@@ -99,13 +110,46 @@ C type of fit
         IOPC=READILIM_B('0',0,2)
         IF(IOPC.EQ.0) STOP 'End of program execution!'
 C------------------------------------------------------------------------------
+        WRITE(*,100) 'Number of fixed points '
+        NFIXED=READI_B('0')
+        IF(NFIXED.GT.NFIXEDMAX)THEN
+          WRITE(*,100) 'NFIXEDMAX: '
+          WRITE(*,*) NFIXEDMAX
+          WRITE(*,100) 'NFIXED...: '
+          WRITE(*,*) NFIXED
+          WRITE(*,101) 'FATAL ERROR: NFIXED.GT.NFIXEDMAX'
+          STOP
+        END IF
+        IF(NFIXED.LT.0)THEN
+          WRITE(*,101) 'WARNING: invalid number. NFIXED set to 0.'
+          NFIXED=0
+        ELSEIF(NFIXED.GT.0)THEN
+          WRITE(*,100) 'WEIGHT for fixed points '
+          FIXEDWEIGHT=READF_B('1.E6')
+          DO I=1,NFIXED
+            WRITE(*,'(A,I2,$)') 'X-coordinate of point #',I
+            XFIXED(I)=READF_B('@')
+            WRITE(*,'(A,I2,$)') 'Y-coordinate of point #',I
+            YFIXED(I)=READF_B('@')
+          END DO
+        END IF
+C------------------------------------------------------------------------------
+C recuperamos los valores originales (para evitar problemas al
+C des-renormalizar los datos en POLFIT).
+        DO I=1,NDATABUFF
+          XDATA(I)=XDATA_(I)
+          YDATA(I)=YDATA_(I)
+          EYDATA(I)=EYDATA_(I)
+        END DO
+C------------------------------------------------------------------------------
 C..............................................................................
 C                                                      fit to simple polynomial
 C..............................................................................
         IF(IOPC.EQ.1)THEN
           !parametros para el ajuste
           WRITE(*,100) 'Polynomial degree'
-          NTERMS=READILIM_B('@',0,10)
+          WRITE(CDUMMY,*) NFIXED
+          NTERMS=READILIM_B(CDUMMY,0,10)
           NTERMS=NTERMS+1
           WRITE(*,101) '(Note: WEIGHT=1.0 is equivalent to a '//
      +     'normal fit to a simple polynomial)'
