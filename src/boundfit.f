@@ -253,8 +253,8 @@ C------------------------------------------------------------------------------
 C save result
         COPC=' '
         DO WHILE(COPC.NE.'0')
-          WRITE(*,101) '(1) Save last fit into buffer'
-          WRITE(*,101) '(2) Save fit predictions into buffer'
+          WRITE(*,101) '(1) Save last fit'
+          WRITE(*,101) '(2) Save fit predictions'
           IF(IOPC.EQ.2)THEN
             WRITE(*,101) '(K) Save knots'
           END IF
