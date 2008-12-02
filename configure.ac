@@ -27,6 +27,7 @@ AC_ARG_VAR(LENLINEA,[Maximum number of characters/line in input file])
 # Output files
 AC_CONFIG_FILES([Makefile
                  src/lenlinea.inc
+                 src/nfixedmax.inc
                  src/ndatamax.inc
                  src/ndegmax.inc
                  src/nknotsmax.inc
