@@ -19,9 +19,9 @@ C------------------------------------------------------------------------------
 Comment
 C
 C SUBROUTINE PSEUDOFIT(XF,YF,EYF,NF,NTERMS,YRMSTOL,NEVALMAX,
-C                      WEIGHT,POWER,LUP,TSIGMA,A)
+C                      WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
 C
-C Input: XF,YF,EYF,NF,NTERMS,YRMSTOL,WEIGHT,POWER,LUP,CERR
+C Input: XF,YF,EYF,NF,NTERMS,YRMSTOL,WEIGHT,POWER,EPOWER,LUP,CERR
 C Output: A
 C
 C Calculate the polynomial fit to the upper/lower side of a set of data
@@ -34,6 +34,7 @@ C REAL YRMSTOL -> stopping criterion for DOWNHILL
 C INTEGER NEVALMAX -> allowed maximum number of iterations for DOWNHILL
 C REAL WEIGHT -> weighting factor to enhance one side of the fit
 C REAL POWER -> power to be used to compute distances
+C REAL EPOWER -> power to be used to weight errors
 C LOGICAL LUP -> .TRUE.: fit upper side
 C                .FALSE.: fit lower side
 C REAL A(NTERMS) -> fitted coefficients
@@ -41,7 +42,7 @@ C
 Comment
 C------------------------------------------------------------------------------
         SUBROUTINE PSEUDOFIT(XF,YF,EYF,NF,NTERMS,YRMSTOL,NEVALMAX,
-     +   WEIGHT,POWER,LUP,TSIGMA,A)
+     +   WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
         IMPLICIT NONE
 C
         INCLUDE 'ndatamax.inc'
@@ -54,6 +55,7 @@ C
         INTEGER NEVALMAX
         REAL WEIGHT
         REAL POWER
+        REAL EPOWER
         LOGICAL LUP
         REAL TSIGMA
         REAL A(NTERMS)
@@ -66,6 +68,7 @@ C
         INTEGER NEVAL
         REAL WWEIGHT
         REAL PPOWER
+        REAL EEPOWER
         REAL XXF(NDATAMAX),YYF(NDATAMAX),EYYF(NDATAMAX)
         REAL X0(NDEGMAX+1),DX0(NDEGMAX+1),X(NDEGMAX+1),DX(NDEGMAX+1)
         REAL CHISQR
@@ -74,7 +77,7 @@ C
 C
         COMMON/BLKFUNKPSEUDO0/NNF,NNTERMS
         COMMON/BLKFUNKPSEUDO1/XXF,YYF,EYYF
-        COMMON/BLKFUNKPSEUDO2/WWEIGHT,PPOWER,TTSIGMA
+        COMMON/BLKFUNKPSEUDO2/WWEIGHT,PPOWER,EEPOWER,TTSIGMA
         COMMON/BLKFUNKPSEUDO3/LLUP
 C------------------------------------------------------------------------------
 C protecciones
@@ -96,6 +99,7 @@ C poder pasar la información mediante COMMON blocks a la funcion a minimizar)
         NNTERMS=NTERMS
         WWEIGHT=WEIGHT
         PPOWER=POWER
+        EEPOWER=EPOWER
         TTSIGMA=TSIGMA
         LLUP=LUP
         DO J=1,NF

@@ -58,7 +58,7 @@ C variables
         REAL FIXEDWEIGHT
         REAL XMINBUFF,XMAXBUFF
         REAL YMINBUFF,YMAXBUFF
-        REAL WEIGHT,POWER
+        REAL WEIGHT,POWER,EPOWER
         REAL TSIGMA
         REAL YRMSTOL
         REAL A(NDEGMAX+1)
@@ -157,6 +157,8 @@ C..............................................................................
           WEIGHT=READF_B('1000.0')
           WRITE(*,100) 'POWER for pseudofit '
           POWER=READF_B('2.0')
+          WRITE(*,100) 'EPOWER for pseudofit (0.0=unweighted) '
+          EPOWER=READF_B('0.0')
           WRITE(*,100) 'Which side: 1=upper, 2=lower '
           ILUP=READILIM_B('@',1,2)
           LUP=(ILUP.EQ.1)
@@ -184,7 +186,7 @@ C..............................................................................
           NEVALMAX=READILIM_B('1000',1,1000000)
           !realizamos el ajuste
           CALL PSEUDOFIT(XDATA,YDATA,EYDATA,NDATABUFF,NTERMS,YRMSTOL,
-     +     NEVALMAX,WEIGHT,POWER,LUP,TSIGMA,A)
+     +     NEVALMAX,WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
 C..............................................................................
 C                                                       fit to adaptive splines
 C..............................................................................
@@ -205,6 +207,8 @@ C..............................................................................
           WEIGHT=READF_B('1000.0')
           WRITE(*,100) 'POWER for pseudofit '
           POWER=READF_B('2.0')
+          WRITE(*,100) 'EPOWER for pseudofit '
+          EPOWER=READF_B('2.0')
           WRITE(*,100) 'Which side: 1=upper, 2=lower '
           ILUP=READILIM_B('@',1,2)
           LUP=(ILUP.EQ.1)
@@ -239,7 +243,7 @@ C..............................................................................
           !realizamos el ajuste
           CALL SPLFIT(NDATABUFF,XDATA,YDATA,EYDATA,NKNOTS,XKNOT,
      +     YRMSTOL,NEVALMAX,NSEED,
-     +     WEIGHT,POWER,LUP,TSIGMA,
+     +     WEIGHT,POWER,EPOWER,LUP,TSIGMA,
      +     NPLOTMAX,XP,YP,XKNOT(1),XKNOT(NKNOTS),YKNOT,ASPL,BSPL,CSPL)
 C..............................................................................
 C                                                           something is wrong!

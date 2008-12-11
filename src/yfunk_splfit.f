@@ -33,7 +33,7 @@ C
         REAL FIXEDWEIGHT
         REAL XDD(NKNOTSMAX)
         REAL S(NKNOTSMAX),A(NKNOTSMAX),B(NKNOTSMAX),C(NKNOTSMAX)
-        REAL WEIGHT,POWER,TSIGMA
+        REAL WEIGHT,POWER,EPOWER,TSIGMA
         DOUBLE PRECISION W1,W2
         DOUBLE PRECISION F
         LOGICAL LUP
@@ -42,7 +42,7 @@ C
         COMMON/BLKSPLFUNK2/XF,YF,EYF
         COMMON/BLKSPLFUNK3/ND
         COMMON/BLKSPLFUNK4/XDD
-        COMMON/BLKSPLFUNK7/WEIGHT,POWER,TSIGMA
+        COMMON/BLKSPLFUNK7/WEIGHT,POWER,EPOWER,TSIGMA
         COMMON/BLKSPLFUNK8/LUP
         COMMON/BLKFIXED1/NFIXED
         COMMON/BLKFIXED2/XFIXED,YFIXED
@@ -71,9 +71,11 @@ C------------------------------------------------------------------------------
           DO I=1,NF
             CALL CUBSPLX(XDD,X,A,B,C,ND,I0,XF(I),YF0)
             IF(YF0.GE.YF(I))THEN
-              F=F+W1*((DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))
+              F=F+W1*((DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))/
+     +         (DBLE(EYF(I))**DBLE(EPOWER))
             ELSE
-              F=F+W2*((DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))
+              F=F+W2*((DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))/
+     +         (DBLE(EYF(I))**DBLE(EPOWER))
             END IF
           END DO
         ELSE !......................................................con errores
@@ -88,9 +90,11 @@ C------------------------------------------------------------------------------
             DO I=1,NF
               CALL CUBSPLX(XDD,X,A,B,C,ND,I0,XF(I),YF0)
               IF(YF0.GE.YF(I)-TSIGMA*EYF(I))THEN !........aqui usamos signo "-"
-                F=F+W1*(DABS(DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))
+                F=F+W1*(DABS(DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))/
+     +           (DBLE(EYF(I))**DBLE(EPOWER))
               ELSE
-                F=F+W2*(DABS(DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))
+                F=F+W2*(DABS(DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))/
+     +           (DBLE(EYF(I))**DBLE(EPOWER))
               END IF
             END DO
           ELSE
@@ -101,9 +105,11 @@ C------------------------------------------------------------------------------
             DO I=1,NF
               CALL CUBSPLX(XDD,X,A,B,C,ND,I0,XF(I),YF0)
               IF(YF0.GE.YF(I)+TSIGMA*EYF(I))THEN !........aqui usamos signo "+"
-                F=F+W1*(DABS(DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))
+                F=F+W1*(DABS(DBLE(YF0)-DBLE(YF(I)))**DBLE(POWER))/
+     +           (DBLE(EYF(I))**DBLE(EPOWER))
               ELSE
-                F=F+W2*(DABS(DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))
+                F=F+W2*(DABS(DBLE(YF(I))-DBLE(YF0))**DBLE(POWER))/
+     +           (DBLE(EYF(I))**DBLE(EPOWER))
               END IF
             END DO
           END IF

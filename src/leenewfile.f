@@ -158,8 +158,16 @@ C leemos error en variable Y (si procede)
             LUNREAD=.TRUE.
             GOTO 10
           END IF
+          IF(EYDATA(I).LE.0.0)THEN
+            WRITE(*,101) 'WARNING: error.le.0.0 while reading:'
+            WRITE(*,100) '> Point #, X,Y,EY: '
+            WRITE(*,*) I,XDATA(I),YDATA(I),EYDATA(I)
+          END IF
         ELSE
-          EYDATA(I)=0.
+          !si no hay errores, usamos un mismo valor para todos los
+          !puntos; de esta forma las fórmulas siguen siendo válidas para
+          !cualquier valor de la potencia beta
+          EYDATA(I)=1.
         END IF
 C------------------------------------------------------------------------------
         IF(I.EQ.NDATA) GOTO 902
