@@ -33,7 +33,7 @@ C
         REAL XF(NDATAMAX),YF(NDATAMAX),EYF(NDATAMAX)
         REAL XFIXED(NFIXEDMAX),YFIXED(NFIXEDMAX)
         REAL FIXEDWEIGHT
-        REAL WEIGHT,POWER
+        REAL WEIGHT,POWER,EPOWER
         REAL YPOL
         DOUBLE PRECISION W1,W2
         DOUBLE PRECISION DSUM
@@ -42,7 +42,7 @@ C
 C
         COMMON/BLKFUNKPSEUDO0/NF,NTERMS
         COMMON/BLKFUNKPSEUDO1/XF,YF,EYF
-        COMMON/BLKFUNKPSEUDO2/WEIGHT,POWER,TSIGMA
+        COMMON/BLKFUNKPSEUDO2/WEIGHT,POWER,EPOWER,TSIGMA
         COMMON/BLKFUNKPSEUDO3/LUP
         COMMON/BLKFIXED1/NFIXED
         COMMON/BLKFIXED2/XFIXED,YFIXED
@@ -70,18 +70,13 @@ C------------------------------------------------------------------------------
           DO J=1,NF
             YPOL=FPOLY(NDEG,X,XF(J))
             IF(YPOL.GE.YF(J))THEN
-              DSUM=DSUM+W1*(DBLE(YPOL-YF(J))**DBLE(POWER))
+              DSUM=DSUM+W1*(DBLE(YPOL-YF(J))**DBLE(POWER))/
+     +         (DBLE(EYF(J))**DBLE(EPOWER))
             ELSE
-              DSUM=DSUM+W2*(DBLE(YF(J)-YPOL)**DBLE(POWER))
+              DSUM=DSUM+W2*(DBLE(YF(J)-YPOL)**DBLE(POWER))/
+     +         (DBLE(EYF(J))**DBLE(EPOWER))
             END IF
           END DO
-          IF(NFIXED.GT.0)THEN
-            DO J=1,NFIXED
-              YPOL=FPOLY(NDEG,X,XFIXED(J))
-              DSUM=DSUM+
-     +         DBLE(FIXEDWEIGHT)*DABS(DBLE(YFIXED(J)-YPOL))**DBLE(POWER)
-            END DO
-          END IF
         ELSE !......................................................con errores
           IF(LUP)THEN
             !aqui tenemos que usar ABS() porque podemos tener argumentos
@@ -92,9 +87,11 @@ C------------------------------------------------------------------------------
             DO J=1,NF
               YPOL=FPOLY(NDEG,X,XF(J))
               IF(YPOL.GE.YF(J)-TSIGMA*EYF(J))THEN !.......aqui usamos signo "-"
-                DSUM=DSUM+W1*(DABS(DBLE(YPOL-YF(J)))**DBLE(POWER))
+                DSUM=DSUM+W1*(DABS(DBLE(YPOL-YF(J)))**DBLE(POWER))/
+     +           (DBLE(EYF(J))**DBLE(EPOWER))
               ELSE
-                DSUM=DSUM+W2*(DABS(DBLE(YF(J)-YPOL))**DBLE(POWER))
+                DSUM=DSUM+W2*(DABS(DBLE(YF(J)-YPOL))**DBLE(POWER))/
+     +           (DBLE(EYF(J))**DBLE(EPOWER))
               END IF
             END DO
           ELSE
@@ -103,20 +100,24 @@ C------------------------------------------------------------------------------
             DO J=1,NF
               YPOL=FPOLY(NDEG,X,XF(J))
               IF(YPOL.GE.YF(J)+TSIGMA*EYF(J))THEN !.......aqui usamos signo "+"
-                DSUM=DSUM+W1*(DABS(DBLE(YPOL-YF(J)))**DBLE(POWER))
+                DSUM=DSUM+W1*(DABS(DBLE(YPOL-YF(J)))**DBLE(POWER))/
+     +           (DBLE(EYF(J))**DBLE(EPOWER))
               ELSE
-                DSUM=DSUM+W2*(DABS(DBLE(YF(J)-YPOL))**DBLE(POWER))
+                DSUM=DSUM+W2*(DABS(DBLE(YF(J)-YPOL))**DBLE(POWER))/
+     +           (DBLE(EYF(J))**DBLE(EPOWER))
               END IF
             END DO
           END IF
-          IF(NFIXED.GT.0)THEN
-            DO J=1,NFIXED
-              YPOL=FPOLY(NDEG,X,XFIXED(J))
-              DSUM=DSUM+
-     +         DBLE(FIXEDWEIGHT)*DABS(DBLE(YFIXED(J)-YPOL))**DBLE(POWER)
-            END DO
-          END IF
         END IF
+C------------------------------------------------------------------------------
+        IF(NFIXED.GT.0)THEN
+          DO J=1,NFIXED
+            YPOL=FPOLY(NDEG,X,XFIXED(J))
+            DSUM=DSUM+
+     +       DBLE(FIXEDWEIGHT)*DABS(DBLE(YFIXED(J)-YPOL))**DBLE(POWER)
+          END DO
+        END IF
+C------------------------------------------------------------------------------
 C
         DSUM=DSUM/DBLE(NF)
         YFUNK_PSEUDO=REAL(DSUM)

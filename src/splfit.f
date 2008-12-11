@@ -19,11 +19,11 @@ C------------------------------------------------------------------------------
 Comment
 C
 C SUBROUTINE SPLFIT(N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED,
-C                   WEIGHT,POWER,LUP,TSIGMA,
+C                   WEIGHT,POWER,EPOWER,LUP,TSIGMA,
 C                   NOUT,XOUT,YOUT,XMIN,XMAX,YKNOT,ASPL,BSPL,CSPL)
 C
 C Input: N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED
-C Input: WEIGHT,POWER,LUP,TSIGMA,NOUT,XMIN,XMAX
+C Input: WEIGHT,POWER,EPOWER,LUP,TSIGMA,NOUT,XMIN,XMAX
 C Output: XOUT,YOUT,YKNOT,ASPL,BSPL,CSPL
 C
 C Least-squares fit to splines, using ND knots located at XD(). The maximum 
@@ -32,7 +32,7 @@ C Input data are X(N), Y(N). XOUT(NOUT), YOUT(NOUT) are the output values which
 C are computed in the range from XMIN to XMAX. The knot location determines the
 C X(),Y() range employed in the fit (which is performed in the interval from
 C XD(1) to XD(ND)). The subroutine also fits the boundary of the data
-C depending on the values of WEIGHT, POWER, LUP and TSIGMA.
+C depending on the values of WEIGHT, POWER, EPOWER, LUP and TSIGMA.
 C
 C INTEGER N -> initial number of points in input data
 C REAL    X(N) -> sorted input data
@@ -45,6 +45,7 @@ C INTEGER NEVALMAX -> maximum number of allowed iterations in DOWNHILL
 C INTEGER NSEED -> seed for random numbers
 C REAL    WEIGHT -> for boundary fitting
 C REAL    POWER -> for boundary fitting
+C REAL    EPOWER -> for boundary fitting
 C LOGICAL LUP -> .TRUE. for upper-limit, .FALSE. for lower-limit
 C REAL    TSIGMA -> times sigma for boundary fitting
 C INTEGER NOUT -> number of points in output
@@ -62,7 +63,7 @@ C------------------------------------------------------------------------------
 C Esta subrutina requiere POLFIT y DOWNHILL
 C         del ajuste final.
         SUBROUTINE SPLFIT(N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED,
-     +   WEIGHT,POWER,LUP,TSIGMA,
+     +   WEIGHT,POWER,EPOWER,LUP,TSIGMA,
      +   NOUT,XOUT,YOUT,XMIN,XMAX,YKNOT,ASPL,BSPL,CSPL)
         IMPLICIT NONE
         INCLUDE 'ndatamax.inc'
@@ -83,6 +84,7 @@ C
         INTEGER NSEED
         REAL WEIGHT
         REAL POWER
+        REAL EPOWER
         LOGICAL LUP
         REAL TSIGMA
         INTEGER NOUT
@@ -112,6 +114,7 @@ C
         REAL XX0(NKNOTSMAX),DXX0(NKNOTSMAX)
         REAL WWEIGHT
         REAL PPOWER
+        REAL EEPOWER
         REAL TTSIGMA
         REAL A(4),CHISQR,FDUMMY
         REAL SIGMA
@@ -133,7 +136,7 @@ C
         COMMON/BLKSPLFUNK4/XDD
         COMMON/BLKSPLFUNK5/YD
         COMMON/BLKSPLFUNK6/NREF
-        COMMON/BLKSPLFUNK7/WWEIGHT,PPOWER,TTSIGMA
+        COMMON/BLKSPLFUNK7/WWEIGHT,PPOWER,EEPOWER,TTSIGMA
         COMMON/BLKSPLFUNK8/LLUP
 C------------------------------------------------------------------------------
 C Inicializacion (duplicamos argumentos de entrada de la subrutina para
@@ -141,6 +144,7 @@ C poder pasar la informacion mediante COMMON blocks a las funciones)
         NNSEED=NSEED
         WWEIGHT=WEIGHT
         PPOWER=POWER
+        EEPOWER=EPOWER
         TTSIGMA=TSIGMA
         LLUP=LUP
 C------------------------------------------------------------------------------
