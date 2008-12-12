@@ -110,7 +110,7 @@ C poder pasar la información mediante COMMON blocks a la funcion a minimizar)
 C------------------------------------------------------------------------------
 C Primero hacemos un ajuste tradicional para obtener una primera estimacion 
 C (aunque pasamos array de errores en Y, el ajuste lo hacemos sin pesar)
-        CALL POLFIT(XF,YF,EYF,NF,NTERMS,0,A,CHISQR,.TRUE.,-1.,1.,-1.,1.)
+        CALL POLFIT(XF,YF,EYF,NF,NTERMS,0,A,CHISQR,.FALSE.,0.,0.,0.,0.)
 C------------------------------------------------------------------------------
 C Usamos DOWNHILL para calcular el ajuste final
         DO K=1,NTERMS
@@ -127,15 +127,15 @@ C Usamos DOWNHILL para calcular el ajuste final
           A(K)=X(K)
         END DO
 C------------------------------------------------------------------------------
-        WRITE(*,101) '*************************************************'
+        WRITE(*,101) '***********************************************'
         WRITE(*,101) '* Fit results:'
         WRITE(*,100) 'NEVAL: '
         WRITE(*,*) NEVAL
         DO K=1,NTERMS
-          WRITE(*,'(A6,I2.2,A2,$)') '>>> a(',K,')='
+          WRITE(*,'(A6,I2.2,A2,$)') '>>> A(',K-1,')='
           WRITE(*,*) X(K),DX(K)
         END DO
-        WRITE(*,101) '-------------------------------------------------'
+        WRITE(*,101) '-----------------------------------------------'
 C------------------------------------------------------------------------------
 100     FORMAT(A,$)
 101     FORMAT(A)

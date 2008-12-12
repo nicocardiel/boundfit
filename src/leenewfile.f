@@ -45,6 +45,9 @@ C variables
         REAL FEXTRAE
         REAL XMINBUFF,XMAXBUFF
         REAL YMINBUFF,YMAXBUFF
+        REAL EYMINBUFF,EYMAXBUFF
+        REAL BX,CX,BY,CY
+        CHARACTER*1 CRENORM
         CHARACTER*255 INFILE
         CHARACTER*(LENLINEA) CLINEA
         LOGICAL LOGFILE
@@ -53,7 +56,8 @@ C common blocks
         COMMON/BLKINFILE/INFILE
         COMMON/BLKNDATABUFF/NDATABUFF
         COMMON/BLKXYDATA/XDATA,YDATA,EYDATA
-        COMMON/BLKMINMAXBUFF/XMINBUFF,XMAXBUFF,YMINBUFF,YMAXBUFF
+        COMMON/BLKMINMAXBUFF/XMINBUFF,XMAXBUFF
+        COMMON/BLKNORM/BX,CX,BY,CY
 C------------------------------------------------------------------------------
         ISTATUS=0                          !salvo que se demuestre lo contrario
         LUNREAD=.FALSE.                    !indica si algun dato no se ha leido
@@ -89,11 +93,9 @@ C Leemos fichero ASCII
         WRITE(*,100) 'No. of rows to be read (0=ALL)..........'
         NDATA=READI_B('0')
         IF(NDATA.GT.NDATAMAX)THEN
-          WRITE(*,101) 'ERROR: this number of data is too large.'
+          WRITE(*,101) 'FATAL ERROR: this number of data is too large.'
           WRITE(*,101) 'You must modify the parameter NDATAMAX.'
-          WRITE(*,100) 'Press <CR> to continue...'
-          READ(*,*)
-          RETURN
+          STOP
         END IF
 C..............................................................................
 7       WRITE(*,100) 'Column No. for X data.......................'
@@ -174,19 +176,15 @@ C------------------------------------------------------------------------------
         GOTO 10
 C------------------------------------------------------------------------------
 901     CLOSE(10)
-        WRITE(*,101) 'ERROR: unexpected end of file reached'
-        WRITE(*,100) 'Press <CR> to continue...'
-        READ(*,*)
-        RETURN
+        WRITE(*,101) 'FATAL ERROR: unexpected end of file reached'
+        STOP
 C..............................................................................
 902     CLOSE(10)
         IF(NDATA.EQ.0)THEN
           IF(I.EQ.0)THEN
             WRITE(*,*)
-            WRITE(*,101) 'ERROR: unexpected end of file reached'
-            WRITE(*,100) 'Press <CR> to continue...'
-            READ(*,*)
-            RETURN
+            WRITE(*,101) 'FATAL ERROR: unexpected end of file reached'
+            STOP
           ELSE
             NDATABUFF=I
             ISTATUS=1
@@ -195,10 +193,8 @@ C..............................................................................
         ELSE
           IF(I.NE.NDATA)THEN
             WRITE(*,*)
-            WRITE(*,101) 'ERROR: unexpected end of file reached'
-            WRITE(*,100) 'Press <CR> to continue...'
-            READ(*,*)
-            RETURN
+            WRITE(*,101) 'FATAL ERROR: unexpected end of file reached'
+            STOP
           ELSE
             NDATABUFF=I
             ISTATUS=1
@@ -212,25 +208,56 @@ C mostramos datos basicos sobre los puntos leidos
         WRITE(*,*) NDATABUFF
         CALL FINDMML(NDATABUFF,1,NDATABUFF,XDATA,XMINBUFF,XMAXBUFF)
         CALL FINDMML(NDATABUFF,1,NDATABUFF,YDATA,YMINBUFF,YMAXBUFF)
-        WRITE(*,100) '>>> Xmin..............................: '
-        WRITE(*,*) XMINBUFF
-        WRITE(*,100) '>>> Xmax..............................: '
-        WRITE(*,*) XMAXBUFF
-        WRITE(*,100) '>>> Ymin..............................: '
-        WRITE(*,*) YMINBUFF
-        WRITE(*,100) '>>> Ymax..............................: '
-        WRITE(*,*) YMAXBUFF
+        CALL FINDMML(NDATABUFF,1,NDATABUFF,EYDATA,EYMINBUFF,EYMAXBUFF)
+        WRITE(*,100) '>>> Xmin, Xmax........................: '
+        WRITE(*,*) XMINBUFF,XMAXBUFF
+        WRITE(*,100) '>>> Ymin, Ymax........................: '
+        WRITE(*,*) YMINBUFF,YMAXBUFF
+        WRITE(*,100) '>>> EYmin, EYmax......................: '
+        WRITE(*,*) EYMINBUFF,EYMAXBUFF
         IF(LUNREAD)THEN
           WRITE(*,101) 'WARNING: there were unread data'
         END IF
+C------------------------------------------------------------------------------
+C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
+        WRITE(*,100) 'Renormalize data ranges to [-1,+1] before '//
+     +   'fitting (y/n) '
+        CRENORM(1:1)=READC_B('y','yn')
+        IF(CRENORM.EQ.'y')THEN
+          IF(XMINBUFF.EQ.XMAXBUFF)THEN
+            BX=1.0
+            CX=0.0
+          ELSE
+            BX=2./(XMAXBUFF-XMINBUFF)
+            CX=(XMINBUFF+XMAXBUFF)/(XMAXBUFF-XMINBUFF)
+          END IF
+          IF(YMINBUFF.EQ.YMAXBUFF)THEN
+            BY=1.0
+            CY=0.0
+          ELSE
+            BY=2./(YMAXBUFF-YMINBUFF)
+            CY=(YMINBUFF+YMAXBUFF)/(YMAXBUFF-YMINBUFF)
+          END IF
+          DO I=1,NDATABUFF
+            XDATA(I)=BX*XDATA(I)-CX
+            YDATA(I)=BY*YDATA(I)-CY
+            EYDATA(I)=BY*EYDATA(I)-CY
+          END DO
+          XMINBUFF=-1.0
+          XMAXBUFF=+1.0
+        ELSE
+          BX=1.0
+          CX=0.0
+          BY=1.0
+          CY=0.0
+        END IF
+C------------------------------------------------------------------------------
         RETURN
 C..............................................................................
 903     CLOSE(10)
         WRITE(*,100) 'ERROR: while reading data #'
         WRITE(*,*) I+1
-        WRITE(*,100) 'Press <CR> to continue...'
-        READ(*,*)
-        RETURN
+        STOP
 C------------------------------------------------------------------------------
 100     FORMAT(A,$)
 101     FORMAT(A)

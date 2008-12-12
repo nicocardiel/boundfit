@@ -33,9 +33,10 @@ C functions
         REAL RANRED
         REAL READF_B
         REAL FPOLY
+        DOUBLE PRECISION COMBPF
         CHARACTER*255 READC_B
 C variables
-        INTEGER I
+        INTEGER I,K
         INTEGER IOPC
         INTEGER ISTATUS
         INTEGER NDATABUFF
@@ -47,26 +48,22 @@ C variables
         INTEGER NSEED
         INTEGER NDATA
         INTEGER I0SPL
-        !nota: duplicamos las variables porque la re-normalizacion
-        !dentro de POLFIT puede causar diferencias al repetir los
-        !ajustes sobre los mismos datos; de esta forma conservamos
-        !siempre una version original de los mismos.
-        REAL XDATA(NDATAMAX),XDATA_(NDATAMAX)
-        REAL YDATA(NDATAMAX),YDATA_(NDATAMAX)
-        REAL EYDATA(NDATAMAX),EYDATA_(NDATAMAX)
+        REAL XDATA(NDATAMAX)
+        REAL YDATA(NDATAMAX)
+        REAL EYDATA(NDATAMAX)
         REAL XFIXED(NFIXEDMAX),YFIXED(NFIXEDMAX)
         REAL FIXEDWEIGHT
         REAL XMINBUFF,XMAXBUFF
-        REAL YMINBUFF,YMAXBUFF
         REAL WEIGHT,POWER,EPOWER
         REAL TSIGMA
         REAL YRMSTOL
-        REAL A(NDEGMAX+1)
+        REAL A(NDEGMAX+1),AA(NDEGMAX+1)
         REAL XKNOT(NKNOTSMAX),YKNOT(NKNOTSMAX)
         REAL ASPL(NKNOTSMAX),BSPL(NKNOTSMAX),CSPL(NKNOTSMAX)
         REAL RDUMMY
         REAL XP(NDATAMAX),YP(NDATAMAX)
         REAL XMINF,XMAXF
+        REAL BX,CX,BY,CY
         CHARACTER*1 CERR
         CHARACTER*1 COPC
         CHARACTER*50 CDUMMY
@@ -76,8 +73,9 @@ C variables
 C common blocks
         COMMON/BLKINFILE/INFILE
         COMMON/BLKNDATABUFF/NDATABUFF
-        COMMON/BLKXYDATA/XDATA_,YDATA_,EYDATA_
-        COMMON/BLKMINMAXBUFF/XMINBUFF,XMAXBUFF,YMINBUFF,YMAXBUFF
+        COMMON/BLKXYDATA/XDATA,YDATA,EYDATA
+        COMMON/BLKMINMAXBUFF/XMINBUFF,XMAXBUFF
+        COMMON/BLKNORM/BX,CX,BY,CY
         COMMON/BLKOUT_NDATA/NDATA
         COMMON/BLKOUT_XY/XP,YP
         COMMON/BLKFIXED1/NFIXED
@@ -129,18 +127,12 @@ C------------------------------------------------------------------------------
           DO I=1,NFIXED
             WRITE(*,'(A,I2,$)') 'X-coordinate of point #',I
             XFIXED(I)=READF_B('@')
+            XFIXED(I)=BX*XFIXED(I)-CX
             WRITE(*,'(A,I2,$)') 'Y-coordinate of point #',I
             YFIXED(I)=READF_B('@')
+            YFIXED(I)=BY*YFIXED(I)-CY
           END DO
         END IF
-C------------------------------------------------------------------------------
-C recuperamos los valores originales (para evitar problemas al
-C des-renormalizar los datos en POLFIT).
-        DO I=1,NDATABUFF
-          XDATA(I)=XDATA_(I)
-          YDATA(I)=YDATA_(I)
-          EYDATA(I)=EYDATA_(I)
-        END DO
 C------------------------------------------------------------------------------
 C..............................................................................
 C                                                      fit to simple polynomial
@@ -187,6 +179,40 @@ C..............................................................................
           !realizamos el ajuste
           CALL PSEUDOFIT(XDATA,YDATA,EYDATA,NDATABUFF,NTERMS,YRMSTOL,
      +     NEVALMAX,WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
+          !deshacemos la normalizacion
+          WRITE(*,100)'>>> bx,cx: '
+          WRITE(*,*) BX,CX
+          WRITE(*,100)'>>> by,cy: '
+          WRITE(*,*) BY,CY
+          IF(CX.EQ.0.0)THEN
+            DO K=0,NTERMS-1
+              A(K+1)=A(K+1)*(BX**K)
+            END DO
+          ELSE
+            DO K=0,NTERMS-1
+              AA(K+1)=A(K+1)
+            END DO
+            DO K=0,NTERMS-1
+              A(K+1)=0.0
+              DO I=K,NTERMS-1
+                A(K+1)=A(K+1)+AA(I+1)*REAL(COMBPF(I,I-K))*(BX**K)*
+     +           ((-CX)**(I-K))
+              END DO
+            END DO
+          END IF
+          A(1)=A(1)+CY
+          DO K=0,NTERMS-1
+            A(K+1)=A(K+1)/BY
+          END DO
+          !muestra el ajuste final
+          WRITE(*,101) '***********************************************'
+          WRITE(*,101) '* Final coefficients:'
+          DO K=1,NTERMS
+            WRITE(*,'(A6,I2.2,A2,$)') '>>> a(',K-1,')='
+            WRITE(*,*) A(K)
+          END DO
+          WRITE(*,101) '-----------------------------------------------'
+
 C..............................................................................
 C                                                       fit to adaptive splines
 C..............................................................................
@@ -208,7 +234,7 @@ C..............................................................................
           WRITE(*,100) 'POWER for pseudofit '
           POWER=READF_B('2.0')
           WRITE(*,100) 'EPOWER for pseudofit '
-          EPOWER=READF_B('2.0')
+          EPOWER=READF_B('0.0')
           WRITE(*,100) 'Which side: 1=upper, 2=lower '
           ILUP=READILIM_B('@',1,2)
           LUP=(ILUP.EQ.1)
@@ -275,10 +301,10 @@ C save result
           IF(COPC.NE.'0')THEN
             IF(COPC.EQ.'1')THEN
               WRITE(*,100) 'Xmin '
-              WRITE(CDUMMY,*) XMINBUFF
+              WRITE(CDUMMY,*) (XMINBUFF+CX)/BX
               XMINF=READF_B(CDUMMY)
               WRITE(*,100) 'Xmax '
-              WRITE(CDUMMY,*) XMAXBUFF
+              WRITE(CDUMMY,*) (XMAXBUFF+CX)/BX
               XMAXF=READF_B(CDUMMY)
               WRITE(*,100) 'Number of points '
               NDATA=READILIM_B('1000',2,NDATAMAX)
