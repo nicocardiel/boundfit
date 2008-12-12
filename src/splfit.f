@@ -201,7 +201,7 @@ C ajuste inicial a polinomios de grado 2 a cada region entre cada 2 knots
             YD(I)=YD(I)+FDUMMY
             YD(I+1)=YD(I+1)+FDUMMY
           ELSE
-            CALL POLFIT(XF,YF,YF,NF,3,0,A,CHISQR,.TRUE.,-1.,1.,-1.,1.)
+            CALL POLFIT(XF,YF,YF,NF,3,0,A,CHISQR,.FALSE.,0.,0.,0.,0.)
             YD(I)=YD(I)+FPOLY(2,A,XD(I))
             YD(I+1)=YD(I+1)+FPOLY(2,A,XD(I+1))
           END IF
