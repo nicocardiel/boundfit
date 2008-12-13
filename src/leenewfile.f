@@ -241,7 +241,7 @@ C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
           DO I=1,NDATABUFF
             XDATA(I)=BX*XDATA(I)-CX
             YDATA(I)=BY*YDATA(I)-CY
-            EYDATA(I)=BY*EYDATA(I)-CY
+            EYDATA(I)=BY*EYDATA(I)
           END DO
           XMINBUFF=-1.0
           XMAXBUFF=+1.0
