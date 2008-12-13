@@ -344,7 +344,7 @@ C save result
             ELSEIF(COPC.EQ.'2')THEN
               NDATA=NDATABUFF
               DO I=1,NDATA
-                XP(I)=XDATA(I)
+                XP(I)=(XDATA(I)+CX)/BX
               END DO
             ELSEIF(COPC.EQ.'K')THEN
               NDATA=NKNOTS
