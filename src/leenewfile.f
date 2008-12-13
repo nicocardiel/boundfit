@@ -225,6 +225,9 @@ C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
         CRENORM(1:1)=READC_B('y','yn')
         IF(CRENORM.EQ.'y')THEN
           IF(XMINBUFF.EQ.XMAXBUFF)THEN
+            WRITE(*,101) 'ERROR: normalization in X-axis not possible'
+            WRITE(*,100) '>>> Xmin, Xmax: '
+            WRITE(*,*) XMINBUFF,XMAXBUFF
             BX=1.0
             CX=0.0
           ELSE
@@ -232,6 +235,9 @@ C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
             CX=(XMINBUFF+XMAXBUFF)/(XMAXBUFF-XMINBUFF)
           END IF
           IF(YMINBUFF.EQ.YMAXBUFF)THEN
+            WRITE(*,101) 'ERROR: normalization in Y-axis not possible'
+            WRITE(*,100) '>>> Ymin, Ymax: '
+            WRITE(*,*) YMINBUFF,YMAXBUFF
             BY=1.0
             CY=0.0
           ELSE

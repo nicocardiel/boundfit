@@ -212,7 +212,6 @@ C..............................................................................
             WRITE(*,*) A(K)
           END DO
           WRITE(*,101) '-----------------------------------------------'
-
 C..............................................................................
 C                                                       fit to adaptive splines
 C..............................................................................
@@ -271,6 +270,37 @@ C..............................................................................
      +     YRMSTOL,NEVALMAX,NSEED,
      +     WEIGHT,POWER,EPOWER,LUP,TSIGMA,
      +     NPLOTMAX,XP,YP,XKNOT(1),XKNOT(NKNOTS),YKNOT,ASPL,BSPL,CSPL)
+          !deshacemos la normalizacion en los knots y en los coeficientes
+          WRITE(*,100)'>>> bx,cx: '
+          WRITE(*,*) BX,CX
+          WRITE(*,100)'>>> by,cy: '
+          WRITE(*,*) BY,CY
+          DO K=1,NKNOTS
+            XKNOT(K)=(XKNOT(K)+CX)/BX
+            YKNOT(K)=(YKNOT(K)+CY)/BY
+          END DO
+          DO K=1,NKNOTS-1
+            ASPL(K)=ASPL(K)*BX*BX*BX/BY
+            BSPL(K)=BSPL(K)*BX*BX/BY
+            CSPL(K)=CSPL(K)*BX/BY
+          END DO
+          !muestra el ajuste final
+          WRITE(*,101) '***********************************************'
+          WRITE(*,101) '* Final knots:'
+          DO K=1,NKNOTS
+            WRITE(*,100) '>>> Knot #'
+            WRITE(*,'(I2.2,$)') K
+            WRITE(*,100) '  X_knot,Y_knot: '
+            WRITE(*,*) XKNOT(K),YKNOT(K)
+          END DO
+          WRITE(*,101) '-----------------------------------------------'
+          WRITE(*,101) '* Final coefficents:'
+          DO K=1,NKNOTS-1
+            WRITE(*,100) '>>> A,B,C coeff:'
+            WRITE(*,'(I2.2,A1,I2.2,A2,$)') K,'-',K+1,': '
+            WRITE(*,*) ASPL(K),BSPL(K),CSPL(K)
+          END DO
+          WRITE(*,101) '-----------------------------------------------'
 C..............................................................................
 C                                                           something is wrong!
 C..............................................................................
