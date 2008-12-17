@@ -141,7 +141,7 @@ C..............................................................................
           !parametros para el ajuste
           WRITE(*,100) 'Polynomial degree'
           WRITE(CDUMMY,*) NFIXED
-          NTERMS=READILIM_B(CDUMMY,0,10)
+          NTERMS=READILIM_B(CDUMMY,0,NDEGMAX)
           NTERMS=NTERMS+1
           WRITE(*,101) '(Note: WEIGHT=1.0 is equivalent to a '//
      +     'normal fit to a simple polynomial)'
