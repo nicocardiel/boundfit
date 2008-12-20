@@ -127,6 +127,7 @@ C Usamos DOWNHILL para calcular el ajuste final
           A(K)=X(K)
         END DO
 C------------------------------------------------------------------------------
+        WRITE(*,*)
         WRITE(*,101) '***********************************************'
         WRITE(*,101) '* Fit results:'
         WRITE(*,100) 'NEVAL: '

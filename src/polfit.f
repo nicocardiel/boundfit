@@ -113,10 +113,10 @@ c cuando MODE=0
           cy1=1.0
           cy2=0.0
         end if
-        write(*,100) 'polfit> cx1,cx2: '
-        write(*,*) cx1,cx2
-        write(*,100) 'polfit> cy1,cy2: '
-        write(*,*) cy1,cy2
+!       write(*,100) 'polfit> cx1,cx2: '
+!       write(*,*) cx1,cx2
+!       write(*,100) 'polfit> cy1,cy2: '
+!       write(*,*) cy1,cy2
 C------------------------------------------------------------------------------
 C        ACCUMULATE WEIGHTED SUMS
 C

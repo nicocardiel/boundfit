@@ -48,12 +48,14 @@ C variables
         REAL EYMINBUFF,EYMAXBUFF
         REAL BX,CX,BY,CY
         CHARACTER*1 CRENORM
+        CHARACTER*50 CDUMMY
         CHARACTER*255 INFILE
         CHARACTER*(LENLINEA) CLINEA
         LOGICAL LOGFILE
         LOGICAL LUNREAD
+        LOGICAL LECHO
 C common blocks
-        COMMON/BLKINFILE/INFILE
+        COMMON/BLKLECHO/LECHO
         COMMON/BLKNDATABUFF/NDATABUFF
         COMMON/BLKXYDATA/XDATA,YDATA,EYDATA
         COMMON/BLKMINMAXBUFF/XMINBUFF,XMAXBUFF
@@ -61,12 +63,13 @@ C common blocks
 C------------------------------------------------------------------------------
         ISTATUS=0                          !salvo que se demuestre lo contrario
         LUNREAD=.FALSE.                    !indica si algun dato no se ha leido
-5       WRITE(*,100) 'New input data file name (wildcars allowed) '
+5       WRITE(*,100) 'Input data file name (wildcars allowed) '
         INFILE=READC_B('*','@')
+        L1=TRUEBEG(INFILE)
+        L2=TRUELEN(INFILE)
+        IF(LECHO) WRITE(*,101) INFILE(L1:L2)
         IF((INDEX(INFILE,'*').NE.0).OR.
      +   (INDEX(INFILE,'?').NE.0))THEN
-          L1=TRUEBEG(INFILE)
-          L2=TRUELEN(INFILE)
           ISYSTEM=SYSTEMFUNCTION('ls '//INFILE(L1:L2))
           GOTO 5
         END IF
@@ -84,6 +87,10 @@ C Leemos fichero ASCII
         OPEN(10,FILE=INFILE,STATUS='OLD',FORM='FORMATTED')
         WRITE(*,100) 'No. of initial rows to be skipped.......'
         NSKIP=READI_B('0')
+        IF(LECHO)THEN
+          WRITE(CDUMMY,*) NSKIP
+          WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+        END IF
         IF(NSKIP.LT.0) NSKIP=0
         IF(NSKIP.GT.0)THEN
           DO I=1,NSKIP
@@ -92,6 +99,10 @@ C Leemos fichero ASCII
         END IF
         WRITE(*,100) 'No. of rows to be read (0=ALL)..........'
         NDATA=READI_B('0')
+        IF(LECHO)THEN
+          WRITE(CDUMMY,*) NDATA
+          WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+        END IF
         IF(NDATA.GT.NDATAMAX)THEN
           WRITE(*,101) 'FATAL ERROR: this number of data is too large.'
           WRITE(*,101) 'You must modify the parameter NDATAMAX.'
@@ -100,6 +111,10 @@ C Leemos fichero ASCII
 C..............................................................................
 7       WRITE(*,100) 'Column No. for X data.......................'
         NX=READI_B('@')
+        IF(LECHO)THEN
+          WRITE(CDUMMY,*) NX
+          WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+        END IF
         IF(NX.LT.1)THEN
           WRITE(*,101) 'ERROR: this number must be > 0. Try again.'
           WRITE(*,100) 'Press <CR> to continue...'
@@ -108,6 +123,10 @@ C..............................................................................
         END IF
 8       WRITE(*,100) 'Column No. for Y data.......................'
         NY=READI_B('@')
+        IF(LECHO)THEN
+          WRITE(CDUMMY,*) NY
+          WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+        END IF
         IF(NY.LT.1)THEN
           WRITE(*,101) 'ERROR: this number must be > 0. Try again.'
           WRITE(*,100) 'Press <CR> to continue...'
@@ -116,6 +135,10 @@ C..............................................................................
         END IF
 9       WRITE(*,100) 'Column No. for err(Y) data (0=NONE).....'
         NEY=READI_B('0')
+        IF(LECHO)THEN
+          WRITE(CDUMMY,*) NEY
+          WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+        END IF
         IF(NEY.LT.0)THEN
           WRITE(*,101) 'ERROR: this number must be >= 0. Try again.'
           WRITE(*,100) 'Press <CR> to continue...'
@@ -123,7 +146,8 @@ C..............................................................................
           GOTO 9
         END IF
 C------------------------------------------------------------------------------
-        WRITE(*,100) 'Reading file...'
+        WRITE(*,*)
+        WRITE(*,101) 'Reading file...'
         NCOMMENTS=0
         I=0
 10      READ(10,101,END=902) CLINEA
@@ -202,27 +226,29 @@ C..............................................................................
           END IF
         END IF
 C mostramos datos basicos sobre los puntos leidos
-        WRITE(*,100) '>>> No. of rows with comments (unread): '
+        WRITE(*,*)
+        WRITE(*,100) '>>> No. of rows with comments (unread)......: '
         WRITE(*,*) NCOMMENTS
-        WRITE(*,100) '>>> No. of rows read..................: '
+        WRITE(*,100) '>>> No. of rows read........................: '
         WRITE(*,*) NDATABUFF
         CALL FINDMML(NDATABUFF,1,NDATABUFF,XDATA,XMINBUFF,XMAXBUFF)
         CALL FINDMML(NDATABUFF,1,NDATABUFF,YDATA,YMINBUFF,YMAXBUFF)
         CALL FINDMML(NDATABUFF,1,NDATABUFF,EYDATA,EYMINBUFF,EYMAXBUFF)
-        WRITE(*,100) '>>> Xmin, Xmax........................: '
+        WRITE(*,100) '>>> Xmin, Xmax..............................: '
         WRITE(*,*) XMINBUFF,XMAXBUFF
-        WRITE(*,100) '>>> Ymin, Ymax........................: '
+        WRITE(*,100) '>>> Ymin, Ymax..............................: '
         WRITE(*,*) YMINBUFF,YMAXBUFF
-        WRITE(*,100) '>>> EYmin, EYmax......................: '
+        WRITE(*,100) '>>> EYmin, EYmax............................: '
         WRITE(*,*) EYMINBUFF,EYMAXBUFF
         IF(LUNREAD)THEN
           WRITE(*,101) 'WARNING: there were unread data'
         END IF
 C------------------------------------------------------------------------------
 C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
-        WRITE(*,100) 'Renormalize data ranges to [-1,+1] before '//
-     +   'fitting (y/n) '
+        WRITE(*,*)
+        WRITE(*,100) 'Normalise data ranges to [-1,+1]  (y/n) '
         CRENORM(1:1)=READC_B('y','yn')
+        IF(LECHO) WRITE(*,101) CRENORM
         IF(CRENORM.EQ.'y')THEN
           IF(XMINBUFF.EQ.XMAXBUFF)THEN
             WRITE(*,101) 'ERROR: normalization in X-axis not possible'

@@ -16,34 +16,36 @@ C
 C You should have received a copy of the GNU General Public License
 C along with BoundFit. If not, see <http://www.gnu.org/licenses/>.
 C------------------------------------------------------------------------------
-        SUBROUTINE SAVERESULT
+        SUBROUTINE ASKOUTFILE(OUTFILE)
         IMPLICIT NONE
-C
-        INCLUDE 'ndatamax.inc'
+        CHARACTER*(*) OUTFILE
 C
         INTEGER TRUEBEG
         INTEGER TRUELEN
         CHARACTER*255 READC_B
 C
-        INTEGER I
         INTEGER L1,L2
-        INTEGER NDATA
-        REAL XP(NDATAMAX),YP(NDATAMAX)
-        CHARACTER*255 OUTFILE
-        LOGICAL LOGFILE
         LOGICAL LECHO
+        LOGICAL LOGFILE
 C
         COMMON/BLKLECHO/LECHO
-        COMMON/BLKOUT_NDATA/NDATA
-        COMMON/BLKOUT_XY/XP,YP
 C------------------------------------------------------------------------------
-        CALL ASKOUTFILE(OUTFILE)
-C
-        OPEN(20,FILE=OUTFILE,STATUS='NEW',FORM='FORMATTED')
-        DO I=1,NDATA
-          WRITE(20,*) XP(I),YP(I)
+        LOGFILE=.TRUE.
+        DO WHILE(LOGFILE)
+          WRITE(*,100) 'Output ASCII file name......................'
+          OUTFILE=READC_B('@','@')
+          IF(LECHO)THEN
+            L1=TRUEBEG(OUTFILE)
+            L2=TRUELEN(OUTFILE)
+            WRITE(*,101) OUTFILE(L1:L2)
+          END IF
+          INQUIRE(FILE=OUTFILE,EXIST=LOGFILE)
+          IF(LOGFILE)THEN
+            WRITE(*,101) 'ERROR: this file already exist. Try again.'
+            WRITE(*,100) 'Press <CR> to continue...'
+            READ(*,*)
+          END IF
         END DO
-        CLOSE(20)
 C
 100     FORMAT(A,$)
 101     FORMAT(A)

@@ -7,6 +7,7 @@ ndatamax.inc \
 ndegmax.inc \
 nknotsmax.inc \
 version.inc \
+askoutfile.f \
 binsearch.f \
 boundfit.f \
 cleantab.f \
