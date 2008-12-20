@@ -67,6 +67,8 @@ C         del ajuste final.
      +   NOUT,XOUT,YOUT,XMIN,XMAX,YKNOT,ASPL,BSPL,CSPL)
         IMPLICIT NONE
         INCLUDE 'ndatamax.inc'
+C
+        INTEGER TRUEBEG,TRUELEN
         INTEGER READI_B
         INTEGER READILIM_B
         REAL READF_B
@@ -96,6 +98,7 @@ C
         REAL YFUNK_SPLFIT,YFUNK_SPLFIT1,YFUNK_SPLFIT2,YFUNK_SPLFIT3
 C
         INTEGER I,J,K,H,L
+        INTEGER L1,L2
         INTEGER NF
         INTEGER NEVAL
         INTEGER NDD,NREF
@@ -124,11 +127,15 @@ C
         CHARACTER*1 CREF
         CHARACTER*1 CMERGE
         CHARACTER*1 CREPEAT
+        CHARACTER*1 CVERBOSE
         CHARACTER*80 CDUMMY
         LOGICAL LLUP
         LOGICAL LOOP,LOOP_
         LOGICAL LMERGE(NKNOTSMAX),LMERGE_ANY
+        LOGICAL LECHO
 C
+        COMMON/BLKLECHO/LECHO
+        COMMON/BLKCVERBOSE/CVERBOSE
         COMMON/BLKSPLNSEED/NNSEED
         COMMON/BLKSPLFUNK1/NF
         COMMON/BLKSPLFUNK2/XF,YF,EYF
@@ -265,16 +272,18 @@ C llamamos a DOWNHILL y minimizamos la posicion en Y de todos los knots
           XDD(I)=XD(I)   !XD para el COMMON block
         END DO
         do i=1,nd
-          print*,'downhill_1> ',i,xx0(i),dxx0(i)
+!         print*,'downhill_1> ',i,xx0(i),dxx0(i)
         end do
-        WRITE(*,100) 'Running DOWNHILL...'
+        WRITE(*,*)
+        WRITE(*,101) 'Running DOWNHILL '//
+     +   '(minimising all the Y-coordinates)...'
         CALL DOWNHILL(ND,XX0,DXX0,YFUNK_SPLFIT,1.0,0.5,2.0,YRMSTOL,
      +   XX,DXX,NEVAL,NEVALMAX)
-        WRITE(*,110) ' NEVAL: ',NEVAL
+        WRITE(*,110) '>>> NEVAL: ',NEVAL
         DO J=1,ND
           YD(J)=XX(J)
           DYD(J)=DXX(J)
-          print*,'downhill_2> ',j,xx(j),dxx(j)
+!         print*,'downhill_2> ',j,xx(j),dxx(j)
         END DO
         SIGMA=SQRT(YFUNK_SPLFIT(YD))
 20      CALL CUBSPL(XD,YD,ND,1,SSPL,ASPL,BSPL,CSPL)                    !IMODE=1
@@ -284,23 +293,31 @@ C llamamos a DOWNHILL y minimizamos la posicion en Y de todos los knots
         END DO
 C si estamos iterando seguimos con las iteraciones
         IF((NITERT.NE.0).AND.(NITER.LT.NITERT)) GOTO 24
-        WRITE(*,*)
-        WRITE(*,100)'Chi^2 of the fit: '
-        WRITE(*,*) SIGMA
-        WRITE(*,*)
+        IF(CVERBOSE.EQ.'y')THEN
+          WRITE(*,*)
+          WRITE(*,100)'Chi^2 of the fit: '
+          WRITE(*,*) SIGMA
+          WRITE(*,*)
+        END IF
 C mostramos los coeficientes del ajuste
-        DO I=1,ND-1
-          WRITE(*,100) '>>> A,B,C coeff. #'
-          WRITE(*,'(I2.2,A1,I2.2,A2,$)') I,'-',I+1,': '
-          WRITE(*,*) ASPL(I),BSPL(I),CSPL(I)
-        END DO
-        WRITE(*,*)
+        IF(CVERBOSE.EQ.'y')THEN
+          DO I=1,ND-1
+            WRITE(*,100) '>>> A,B,C coeff. #'
+            WRITE(*,'(I2.2,A1,I2.2,A2,$)') I,'-',I+1,': '
+            WRITE(*,*) ASPL(I),BSPL(I),CSPL(I)
+          END DO
+          WRITE(*,*)
+        END IF
 C mostramos los knots del ajuste
+        IF(CVERBOSE.EQ.'y')THEN
+          DO I=1,ND
+            WRITE(*,100) '>>> Knot #'
+            WRITE(*,'(I2.2,$)') I
+            WRITE(*,100) ', (Xknot,Yknot): '
+            WRITE(*,*) XD(I),YD(I)
+          END DO
+        END IF
         DO I=1,ND
-          WRITE(*,100) '>>> Knot #'
-          WRITE(*,'(I2.2,$)') I
-          WRITE(*,100) ', (Xknot,Yknot): '
-          WRITE(*,*) XD(I),YD(I)
           YKNOT(I)=YD(I)
         END DO
 C si el numero de Knots es solo 2 (los extremos) no se refina el ajuste
@@ -317,7 +334,7 @@ C Si se quiere refinamos el ajuste
         END IF
         WRITE(*,101)'(R) Refine X and Y position-> all Knots'
         WRITE(*,101)'(0) EXIT'
-        WRITE(*,100)'Option '
+        WRITE(*,100)'Option..................................'
         IF(ND.GT.2)THEN
           CREF(1:1)=READC_B('0','0123AaDdMmRr')
         ELSE
@@ -327,6 +344,7 @@ C Si se quiere refinamos el ajuste
         IF(CREF.EQ.'d')CREF='D'
         IF(CREF.EQ.'m')CREF='M'
         IF(CREF.EQ.'r')CREF='R'
+        IF(LECHO) WRITE(*,101) CREF
 C..............................................................................
         IF(CREF.EQ.'0')THEN
           RETURN
@@ -341,14 +359,27 @@ C..............................................................................
           END IF
 C
           WRITE(*,101) 'Enter (x,y) coordinates of the new knot:'
-          WRITE(*,100) 'New x coordinate'
+          WRITE(*,100) 'New x coordinate............................'
           XNEW=READF_B('@')
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) XNEW
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
           !estimamos el valor para X=XNEW en el ultimo ajuste
-          WRITE(*,100) 'New y coordinate '
           I0SPL=1
           CALL CUBSPLX(XD,YD,ASPL,BSPL,CSPL,ND,I0SPL,XNEW,YNEW)
           WRITE(CDUMMY,*) YNEW
+          L1=TRUEBEG(CDUMMY)
+          L2=TRUELEN(CDUMMY)
+          WRITE(*,100) 'New y coordinate'
+          DO L=1,25-(L2-L1+1)
+            WRITE(*,100) '.'
+          END DO
           YNEW=READF_B(CDUMMY)
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) YNEW
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
 C
           INEW=1
           CALL BINSEARCH(XD,ND,XNEW,INEW)
@@ -383,7 +414,16 @@ C
 C..............................................................................
         ELSEIF(CREF.EQ.'D')THEN
           WRITE(*,100) 'Knot number to be deleted'
+          IF(ND.GT.9)THEN
+            WRITE(*,100) '........'
+          ELSE
+            WRITE(*,100) '.........'
+          END IF
           NDELETE=READILIM_B('@',2,ND-1) !no podemos eliminar los extremos
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) NDELETE
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
           ND_=ND-1
           DO I=1,ND-1
             IF(I.LT.NDELETE)THEN
@@ -404,12 +444,21 @@ C..............................................................................
           LMERGE_ANY=.FALSE.
           LOOP=.TRUE.
           DO WHILE(LOOP)
-            WRITE(*,*)
+            IF(CVERBOSE.EQ.'y') WRITE(*,*)
             LOOP_=.TRUE.
             DO WHILE(LOOP_)
-              WRITE(*,100) 'Delta_X to merge knots '
               WRITE(CDUMMY,*) (XD(ND)-XD(1))/REAL(N)
+              L1=TRUEBEG(CDUMMY)
+              L2=TRUELEN(CDUMMY)
+              WRITE(*,100) 'Delta_X to merge knots'
+              DO L=1,19-(L2-L1+1)
+                WRITE(*,100) '.'
+              END DO
               DELTAX=READF_B(CDUMMY)
+              IF(LECHO)THEN
+                WRITE(CDUMMY,*) DELTAX
+                WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+              END IF
               IF(DELTAX.GE.(XD(ND)-XD(1))/2.0)THEN
                 WRITE(*,101) 'ERROR: Delta_X is too large!'
                 WRITE(*,100) '       Delta_X must be < '
@@ -421,14 +470,14 @@ C..............................................................................
             END DO
             DO I=1,ND-1
               IF((XD(I+1)-XD(I)).LE.DELTAX)THEN
-                WRITE(*,100) 'Knots suitable for merging: '
+                WRITE(*,100) '>>> Knots suitable for merging: '
                 WRITE(*,'(I2,2X,I2)') I,I+1
                 LMERGE(I)=.TRUE.
                 LMERGE_ANY=.TRUE.
               END IF
             END DO
             IF(LMERGE_ANY)THEN
-              WRITE(*,100) 'Are you proceeding with merging (y/n) '
+              WRITE(*,100) 'Are you proceeding with merging (y/n)...'
               CMERGE(1:1)=READC_B('y','yn')
               IF(CMERGE.EQ.'n') GOTO 21
               !fusionamos los knots (nota: LMERGE(ND)=.FALSE. siempre)
@@ -436,8 +485,9 @@ C..............................................................................
               LOOP=.FALSE.
             ELSE
               WRITE(*,101) 'WARNING: No "touching" knots found!'
-              WRITE(*,100) 'Do you want to modify Delta_X (y/n) '
+              WRITE(*,100) 'Do you want to modify Delta_X (y/n).....'
               CREPEAT(1:1)=READC_B('y','yn')
+              IF(LECHO) WRITE(*,101) CREPEAT
               IF(CREPEAT(1:1).EQ.'n') GOTO 21
             END IF
           END DO
@@ -460,8 +510,17 @@ C si hemos cambiado el numero de knots, repetimos el ajuste
 C------------------------------------------------------------------------------
         NITER=0
         IF(CREF.NE.'R')THEN
-          WRITE(*,100)'Knot number to be refined '
+          WRITE(*,100)'Knot number to be refined'
+          IF(ND.GT.9)THEN
+            WRITE(*,100) '........'
+          ELSE
+            WRITE(*,100) '.........'
+          END IF
           NREF=READILIM_B('@',1,ND)
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) NREF
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
           IF((NREF.EQ.1).OR.(NREF.EQ.ND))THEN
             IF(CREF.NE.'3')THEN
               WRITE(*,101)'WARNING: 1st & last knot only can be '//
@@ -470,8 +529,12 @@ C------------------------------------------------------------------------------
             END IF
           END IF
         ELSE
-          WRITE(*,100)'How many iterations (0=none) '
+          WRITE(*,100)'Nrefine...................'
           NITERT=READILIM_B('1',0,1000)
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) NITERT
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
           IF(NITERT.EQ.0) GOTO 21
           NITER=0
         END IF
@@ -492,49 +555,65 @@ C -> REFINAMOS x e y ----------------------------------------------------------
           ELSE
             DXX0(2)=1. !que remedio
           END IF
-          WRITE(*,130) 'knot#',NREF,'> '
-          WRITE(*,100) 'Initial values X,Y: '
-          WRITE(*,*) XX0(1),XX0(2)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,130) 'knot#',NREF,'> '
+            WRITE(*,100) 'Initial values X,Y: '
+            WRITE(*,*) XX0(1),XX0(2)
+          END IF
           CALL DOWNHILL(2,XX0,DXX0,YFUNK_SPLFIT3,1.0,0.5,2.0,YRMSTOL,
      +     XX,DXX,NEVAL)
-          WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+          END IF
           XD(NREF)=XX(1)
           YD(NREF)=XX(2)
-          WRITE(*,130) 'knot#',NREF,'> '
-          WRITE(*,100) 'Refined values X,Y: '
-          WRITE(*,*) XX(1),XX(2)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,130) 'knot#',NREF,'> '
+            WRITE(*,100) 'Refined values X,Y: '
+            WRITE(*,*) XX(1),XX(2)
+          END IF
           SIGMA=SQRT(YFUNK_SPLFIT3(XX))
           DO I=1,ND            !actualizamos XDD para futuras llamadas a FUNK's
             XDD(I)=XD(I)
           END DO
 C -> REFINAMOS x --------------------------------------------------------------
         ELSEIF(CREF.EQ.'2')THEN
-          WRITE(*,100)'Valor inicial  en X: '
-          WRITE(*,*) XD(NREF)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,100)'Valor inicial  en X: '
+            WRITE(*,*) XD(NREF)
+          END IF
           XX0(1)=XD(NREF)                      !valores iniciales para DOWNHILL
           IF(XD(NREF-1).NE.XD(NREF+1))THEN
             DXX0(1)=(XD(NREF+1)-XD(NREF-1))*0.5
           ELSE
             DXX0(1)=1. !que remedio
           END IF
-          WRITE(*,130) 'knot#',NREF,'> '
-          WRITE(*,100) 'Initial value X: '
-          WRITE(*,*) XX0(1)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,130) 'knot#',NREF,'> '
+            WRITE(*,100) 'Initial value X: '
+            WRITE(*,*) XX0(1)
+          END IF
           CALL DOWNHILL(1,XX0,DXX0,YFUNK_SPLFIT1,1.0,0.5,2.0,YRMSTOL,
      +     XX,DXX,NEVAL)
-          WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+          END IF
           XD(NREF)=XX(1)
-          WRITE(*,130) 'knot#',NREF,'> '
-          WRITE(*,100) 'Refined value X: '
-          WRITE(*,*) XX(1)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,130) 'knot#',NREF,'> '
+            WRITE(*,100) 'Refined value X: '
+            WRITE(*,*) XX(1)
+          END IF
           SIGMA=SQRT(YFUNK_SPLFIT1(XX))
           DO I=1,ND            !actualizamos XDD para futuras llamadas a FUNK's
             XDD(I)=XD(I)
           END DO
 C -> REFINAMOS y --------------------------------------------------------------
         ELSEIF(CREF.EQ.'3')THEN
-          WRITE(*,100)'Valor inicial  en Y: '
-          WRITE(*,*) YD(NREF)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,100)'Valor inicial  en Y: '
+            WRITE(*,*) YD(NREF)
+          END IF
           XX0(1)=YD(NREF)                      !valores iniciales para DOWNHILL
           IF(YD(NREF).NE.0.0)THEN
             DXX0(1)=YD(NREF)*0.05
@@ -543,24 +622,32 @@ C -> REFINAMOS y --------------------------------------------------------------
           ELSE
             DXX0(1)=1. !que remedio
           END IF
-          WRITE(*,130) 'knot#',NREF,'> '
-          WRITE(*,100) 'Initial value Y: '
-          WRITE(*,*) XX0(1)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,130) 'knot#',NREF,'> '
+            WRITE(*,100) 'Initial value Y: '
+            WRITE(*,*) XX0(1)
+          END IF
           CALL DOWNHILL(1,XX0,DXX0,YFUNK_SPLFIT2,1.0,0.5,2.0,YRMSTOL,
      +     XX,DXX,NEVAL)
-          WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+          END IF
           YD(NREF)=XX(1)
-          WRITE(*,130) 'knot#',NREF,'> '
-          WRITE(*,100) 'Refined value Y: '
-          WRITE(*,*) XX(1)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,130) 'knot#',NREF,'> '
+            WRITE(*,100) 'Refined value Y: '
+            WRITE(*,*) XX(1)
+          END IF
           SIGMA=SQRT(YFUNK_SPLFIT2(XX))
-          WRITE(*,100)'Valor refinado en Y: '
-          WRITE(*,*) YD(NREF)
+          IF(CVERBOSE.EQ.'y')THEN
+            WRITE(*,100)'Valor refinado en Y: '
+            WRITE(*,*) YD(NREF)
+          END IF
 C -> refinamos todos los nodos-------------------------------------------------
         ELSEIF(CREF.EQ.'R')THEN
           CALL RANSPL(ND,NRANND)            !ordenamos los Knots aleatoriamente
           NITER=NITER+1
-          WRITE(*,*)
+          IF(CVERBOSE.EQ.'y') WRITE(*,*)
           WRITE(*,109)'>>> ITERATION #',NITER
           WRITE(*,100)' --> '
           DO I=1,ND-1                !mostramos el orden aleatorio de los Knots
@@ -572,7 +659,7 @@ C -> refinamos todos los nodos-------------------------------------------------
           CALL RMBLANK(CDUMMY,CDUMMY,L)
           WRITE(*,101)CDUMMY(1:L)
           DO H=1,ND
-            WRITE(*,*)
+            IF(CVERBOSE.EQ.'y') WRITE(*,*)
             NREF=NRANND(H)
             IF((NREF.EQ.1).OR.(NREF.EQ.ND))THEN            !refinamos solo en Y
               XX0(1)=YD(NREF)
@@ -583,16 +670,22 @@ C -> refinamos todos los nodos-------------------------------------------------
               ELSE
                 DXX0(1)=1. !que remedio
               END IF
-              WRITE(*,130) 'knot#',NREF,'> '
-              WRITE(*,100) 'Initial value Y: '
-              WRITE(*,*) XX0(1)
+              IF(CVERBOSE.EQ.'y')THEN
+                WRITE(*,130) 'knot#',NREF,'> '
+                WRITE(*,100) 'Initial value Y: '
+                WRITE(*,*) XX0(1)
+              END IF
               CALL DOWNHILL(1,XX0,DXX0,YFUNK_SPLFIT2,1.0,0.5,2.0,
      +         YRMSTOL,XX,DXX,NEVAL)
-              WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+              IF(CVERBOSE.EQ.'y')THEN
+                WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+              END IF
               YD(NREF)=XX(1)
-              WRITE(*,130) 'knot#',NREF,'> '
-              WRITE(*,100) 'Refined value Y: '
-              WRITE(*,*) XX(1)
+              IF(CVERBOSE.EQ.'y')THEN
+                WRITE(*,130) 'knot#',NREF,'> '
+                WRITE(*,100) 'Refined value Y: '
+                WRITE(*,*) XX(1)
+              END IF
               SIGMA=SQRT(YFUNK_SPLFIT2(XX))
             ELSE                                            !refinamos en X e Y
               XX0(1)=XD(NREF)                  !valores iniciales para DOWNHILL
@@ -609,17 +702,23 @@ C -> refinamos todos los nodos-------------------------------------------------
               ELSE
                 DXX0(2)=1. !que remedio
               END IF
-              WRITE(*,130) 'knot#',NREF,'> '
-              WRITE(*,100) 'Initial values X,Y: '
-              WRITE(*,*) XX0(1),XX0(2)
+              IF(CVERBOSE.EQ.'y')THEN
+                WRITE(*,130) 'knot#',NREF,'> '
+                WRITE(*,100) 'Initial values X,Y: '
+                WRITE(*,*) XX0(1),XX0(2)
+              END IF
               CALL DOWNHILL(2,XX0,DXX0,YFUNK_SPLFIT3,1.0,0.5,2.0,
      +         YRMSTOL,XX,DXX,NEVAL)
-              WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+              IF(CVERBOSE.EQ.'y')THEN
+                WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+              END IF
               XD(NREF)=XX(1)
               YD(NREF)=XX(2)
-              WRITE(*,130) 'knot#',NREF,'> '
-              WRITE(*,100) 'Refined values X,Y: '
-              WRITE(*,*) XX(1),XX(2)
+              IF(CVERBOSE.EQ.'y')THEN
+                WRITE(*,130) 'knot#',NREF,'> '
+                WRITE(*,100) 'Refined values X,Y: '
+                WRITE(*,*) XX(1),XX(2)
+              END IF
               SIGMA=SQRT(YFUNK_SPLFIT3(XX))
               DO I=1,ND        !actualizamos XDD para futuras llamadas a FUNK's
                 XDD(I)=XD(I)
