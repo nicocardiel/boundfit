@@ -24,6 +24,7 @@ iofunctions.f \
 leenewfile.f \
 Makefile.am \
 merge_knots.f \
+ordena1f.f \
 polfit.f \
 pseudofit.f \
 ranred.f \

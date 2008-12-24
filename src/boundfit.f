@@ -69,6 +69,7 @@ C variables
         REAL BX,CX,BY,CY
         CHARACTER*1 COPC
         CHARACTER*1 CVERBOSE
+        CHARACTER*1 CEQUI
         CHARACTER*50 CDUMMY
         CHARACTER*255 COEFFFILE
         LOGICAL LOOP
@@ -89,13 +90,13 @@ C common blocks
 C------------------------------------------------------------------------------
 C welcome message
         WRITE(*,*)
-        WRITE(*,101) '*********************************************'
-        WRITE(*,101) '     Welcome to boundfit '//
+        WRITE(*,101) '***********************************************'
+        WRITE(*,101) '      Welcome to BoundFit '//
      +   '(version '//VERSION//')'
-        WRITE(*,101) '---------------------------------------------'
+        WRITE(*,101) '-----------------------------------------------'
         WRITE(*,101) 'For more details see Cardiel (2009) or visit:'
-        WRITE(*,101) '  http://guaix.fis.ucm.es/projects/boundfit'
-        WRITE(*,101) '*********************************************'
+        WRITE(*,101) 'http://www.ucm.es/info/Astrof/software/boundfit'
+        WRITE(*,101) '***********************************************'
         WRITE(*,*)
 C------------------------------------------------------------------------------
         INQUIRE(FILE='.running_BoundFit',EXIST=LECHO)
@@ -109,10 +110,10 @@ C read data file
 C------------------------------------------------------------------------------
 C type of fit
 10      WRITE(*,*)
-        WRITE(*,101) '(1) boundary fitting to a simple polynomial'
-        WRITE(*,101) '(2) boundary fitting to adaptive splines'
+        WRITE(*,101) '(1) Boundary fitting to a simple polynomial'
+        WRITE(*,101) '(2) Boundary fitting to adaptive splines'
         WRITE(*,101) '(0) EXIT'
-        WRITE(*,100) 'Select type of fit...........'
+        WRITE(*,100) 'Select type of fit............'
         IOPC=READILIM_B('0',0,2)
         IF(LECHO)THEN
           WRITE(CDUMMY,*) IOPC
@@ -172,7 +173,7 @@ C                                                      fit to simple polynomial
 C..............................................................................
         IF(IOPC.EQ.1)THEN
           !parametros para el ajuste
-          WRITE(*,100) 'Polynomial degree...........'
+          WRITE(*,100) 'Polynomial degree............'
           WRITE(CDUMMY,*) NFIXED
           NTERMS=READILIM_B(CDUMMY,0,NDEGMAX)
           IF(LECHO)THEN
@@ -213,7 +214,7 @@ C..............................................................................
               LOOP=.FALSE.
             END IF
           END DO
-          WRITE(*,100) 'Side: 1=upper, 2=lower.......'
+          WRITE(*,100) 'Side: 1=upper, 2=lower........'
           ILUP=READILIM_B('1',1,2)
           IF(LECHO)THEN
             WRITE(CDUMMY,*) ILUP
@@ -221,13 +222,13 @@ C..............................................................................
           END IF
           LUP=(ILUP.EQ.1)
           !parametros para DOWNHILL
-          WRITE(*,100) 'Precision for coefficients, DOWNHILL '
+          WRITE(*,100) 'YRMSTOL for DOWNHILL.................'
           YRMSTOL=READF_B('1E-5')
           IF(LECHO)THEN
             WRITE(CDUMMY,*) YRMSTOL
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          WRITE(*,100) 'Nmaxiter in DOWNHILL'
+          WRITE(*,100) 'Nmaxiter in DOWNHILL '
           NEVALMAX=READILIM_B('1000',1,1000000)
           IF(LECHO)THEN
             WRITE(CDUMMY,*) NEVALMAX
@@ -280,13 +281,35 @@ C..............................................................................
             WRITE(CDUMMY,*) NKNOTS
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          !como los datos no tienen por que venir ordenados, usamos
-          !los extremos en el eje X para fijar ahi al menos dos knots
-          XKNOT(1)=XMINBUFF
-          DO IKNOT=1,NKNOTS-1
-            XKNOT(IKNOT+1)=XMINBUFF+
-     +       (XMAXBUFF-XMINBUFF)*REAL(IKNOT)/REAL(NKNOTS-1)
-          END DO
+          WRITE(*,100) 'Equidistant knot arrangement (y/n)......'
+          CEQUI(1:1)=READC_B('y','yn')
+          IF(CEQUI.EQ.'y')THEN
+            !como los datos no tienen por que venir ordenados, usamos
+            !los extremos en el eje X para fijar ahi al menos dos knots
+            XKNOT(1)=XMINBUFF
+            DO IKNOT=1,NKNOTS-1
+              XKNOT(IKNOT+1)=XMINBUFF+
+     +         (XMAXBUFF-XMINBUFF)*REAL(IKNOT)/REAL(NKNOTS-1)
+            END DO
+          ELSE
+            XKNOT(1)=XMINBUFF
+            WRITE(*,'(A,I2,$)') 'X-coordinate of knot #',1
+            WRITE(*,100) '....................: '
+            WRITE(*,*) (XKNOT(1)+CX)/BX
+            XKNOT(NKNOTS)=XMAXBUFF
+            WRITE(*,'(A,I2,$)') 'X-coordinate of knot #',NKNOTS
+            WRITE(*,100) '....................: '
+            WRITE(*,*) (XKNOT(NKNOTS)+CX)/BX
+            IF(NKNOTS.GT.2)THEN
+              DO K=2,NKNOTS-1
+                WRITE(*,'(A,I2,$)') 'X-coordinate of knot #',K
+                WRITE(*,100) '....................'
+                XKNOT(K)=READF_B('@')
+                XKNOT(K)=BX*XKNOT(K)-CX
+              END DO
+              CALL ORDENA1F(NKNOTS,XKNOT)
+            END IF
+          END IF
           WRITE(*,100) 'Asymmetry coefficient.........(xi) '
           WEIGHT=READF_B('1000.0')
           IF(LECHO)THEN
@@ -320,7 +343,7 @@ C..............................................................................
               LOOP=.FALSE.
             END IF
           END DO
-          WRITE(*,100) 'Side: 1=upper, 2=lower.......'
+          WRITE(*,100) 'Side: 1=upper, 2=lower........'
           ILUP=READILIM_B('1',1,2)
           IF(LECHO)THEN
             WRITE(CDUMMY,*) ILUP
@@ -328,21 +351,19 @@ C..............................................................................
           END IF
           LUP=(ILUP.EQ.1)
           !parametros para DOWNHILL
-          WRITE(*,100) 'Precision for coefficients, DOWNHILL '
+          WRITE(*,100) 'YRMSTOL for DOWNHILL.................'
           YRMSTOL=READF_B('1E-5')
           IF(LECHO)THEN
             WRITE(CDUMMY,*) YRMSTOL
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          WRITE(*,100) 'Nmaxiter in DOWNHILL'
+          WRITE(*,100) 'Nmaxiter in DOWNHILL '
           NEVALMAX=READILIM_B('1000',1,1000000)
           IF(LECHO)THEN
             WRITE(CDUMMY,*) NEVALMAX
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
           !semilla para numeros aleatorios
-          WRITE(*,101) '(Note: NSEED must be > 0 to make the '//
-     +     'merging-knots process repeatable)'
           WRITE(*,100) 'NSEED, negative to call srand(time())..'
           NSEED=READI_B('-1')
           IF(LECHO)THEN
@@ -360,6 +381,8 @@ C..............................................................................
      +     WEIGHT,POWER,EPOWER,LUP,TSIGMA,
      +     NPLOTMAX,XP,YP,XKNOT(1),XKNOT(NKNOTS),YKNOT,ASPL,BSPL,CSPL)
           !deshacemos la normalizacion en los knots y en los coeficientes
+          !muestra el ajuste final
+          WRITE(*,101) '***********************************************'
           WRITE(*,100)'>>> bx,cx: '
           WRITE(*,*) BX,CX
           WRITE(*,100)'>>> by,cy: '
@@ -383,10 +406,10 @@ C..............................................................................
             WRITE(*,*) XKNOT(K),YKNOT(K)
           END DO
           WRITE(*,101) '-----------------------------------------------'
-          WRITE(*,101) '* Final coefficents:'
+          WRITE(*,101) '* Final coefficients:'
           DO K=1,NKNOTS-1
-            WRITE(*,100) '>>> A,B,C coeff:'
-            WRITE(*,'(I2.2,A1,I2.2,A2,$)') K,'-',K+1,': '
+            WRITE(*,100) '>>> s_3,s_2,s_1 '
+            WRITE(*,'(A1,I2.2,A1,I2.2,A2,$)') '[',K,'-',K+1,']:'
             WRITE(*,*) ASPL(K),BSPL(K),CSPL(K)
           END DO
           WRITE(*,101) '-----------------------------------------------'
@@ -396,7 +419,7 @@ C..............................................................................
         ELSE
           WRITE(*,100) 'IOPC='
           WRITE(*,*) IOPC
-          STOP 'FATAL ERROR#3 in program boundfit.f'
+          STOP 'FATAL ERROR#3 invalid IOPC'
         END IF
 C------------------------------------------------------------------------------
 C save result
@@ -424,10 +447,10 @@ C save result
             ELSE
               WRITE(30,*) NKNOTS
               DO K=1,NKNOTS
-                WRITE(30,*) XKNOT(K),YKNOT(K)
+                WRITE(30,*) K,XKNOT(K),YKNOT(K)
               END DO
               DO K=1,NKNOTS-1
-                WRITE(30,*) ASPL(K),BSPL(K),CSPL(K)
+                WRITE(30,*) K,ASPL(K),BSPL(K),CSPL(K)
               END DO
             END IF
             CLOSE(30)
@@ -463,7 +486,7 @@ C save result
                 WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
               END IF
               !number of points
-              WRITE(*,100) 'Number of points.....'
+              WRITE(*,100) 'Number of points......'
               NDATA=READILIM_B('1000',2,NDATAMAX)
               IF(LECHO)THEN
                 WRITE(CDUMMY,*) NDATA
@@ -479,8 +502,8 @@ C save result
                 XP(I)=(XDATA(I)+CX)/BX
               END DO
             ELSE
-              WRITE(*,101) 'FATAL ERROR#4 in function boundfit'
               WRITE(*,101) 'COPC='//COPC
+              WRITE(*,101) 'FATAL ERROR#4 invalid COPC'
               STOP
             END IF
             IF(IOPC.EQ.1)THEN !...............................simple polynomial
@@ -496,7 +519,7 @@ C save result
             ELSE
               WRITE(*,100) 'IOPC='
               WRITE(*,*) IOPC
-              STOP 'FATAL ERROR#5 in subroutine otherfit.f'
+              STOP 'FATAL ERROR#5 invalid IOPC'
             END IF
             !save data in external ASCII file
             CALL SAVERESULT

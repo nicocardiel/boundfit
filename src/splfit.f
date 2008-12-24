@@ -324,15 +324,16 @@ C si el numero de Knots es solo 2 (los extremos) no se refina el ajuste
         IF(ND.EQ.2) RETURN
 C Si se quiere refinamos el ajuste
 21      WRITE(*,*)
-        WRITE(*,101)'(1) Refine X and Y position-> 1 Knot'
-        WRITE(*,101)'(2) Refine X-position  -----> 1 Knot'
-        WRITE(*,101)'(3) Refine Y-position  -----> 1 Knot'
+        WRITE(*,101)'(1) Refine X and Y position-> 1 knot'
+        WRITE(*,101)'(2) Refine X position ------> 1 knot'
+        WRITE(*,101)'(3) Refine Y position ------> 1 knot'
         WRITE(*,101)'(A) Add a single new knot'
         IF(ND.GT.2)THEN
           WRITE(*,101)'(D) Delete single knot'
           WRITE(*,101)'(M) Merge "touching" knots'
         END IF
-        WRITE(*,101)'(R) Refine X and Y position-> all Knots'
+        WRITE(*,101)'(R) Refine X and Y position-> all knots '//
+     +   '(one at a time)'
         WRITE(*,101)'(0) EXIT'
         WRITE(*,100)'Option..................................'
         IF(ND.GT.2)THEN
@@ -529,7 +530,7 @@ C------------------------------------------------------------------------------
             END IF
           END IF
         ELSE
-          WRITE(*,100)'Nrefine...................'
+          WRITE(*,100)'Nrefine....................'
           NITERT=READILIM_B('1',0,1000)
           IF(LECHO)THEN
             WRITE(CDUMMY,*) NITERT
@@ -648,7 +649,7 @@ C -> refinamos todos los nodos-------------------------------------------------
           CALL RANSPL(ND,NRANND)            !ordenamos los Knots aleatoriamente
           NITER=NITER+1
           IF(CVERBOSE.EQ.'y') WRITE(*,*)
-          WRITE(*,109)'>>> ITERATION #',NITER
+          WRITE(*,109)'>>> REFINEMENT #',NITER
           WRITE(*,100)' --> '
           DO I=1,ND-1                !mostramos el orden aleatorio de los Knots
             WRITE(CDUMMY,*)NRANND(I)
