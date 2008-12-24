@@ -204,7 +204,7 @@ C------------------------------------------------------------------------------
         NERR=0
         WRITE(CDUMMY,'(A1,I10,A5,I10,A1)') '(',N1,',...,',N2,')'
         CALL RMBLANK(CDUMMY,CDUMMY,L2)
-        WRITE(*,100) ' '//CDUMMY(1:L2)
+        WRITE(*,100) CDUMMY(1:L2)
 10      IF(CDEF.NE.'@')THEN
           L1=TRUEBEG(CDEF)
           IF(L1.NE.0)THEN
@@ -214,7 +214,7 @@ C------------------------------------------------------------------------------
             WRITE(*,100)'] ? '
           END IF
         ELSE
-          WRITE(*,100)'? '
+          WRITE(*,100)' ? '
         END IF
         IF(LBATCH)THEN
           LOOP=.TRUE.
