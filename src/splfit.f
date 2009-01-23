@@ -562,7 +562,7 @@ C -> REFINAMOS x e y ----------------------------------------------------------
             WRITE(*,*) XX0(1),XX0(2)
           END IF
           CALL DOWNHILL(2,XX0,DXX0,YFUNK_SPLFIT3,1.0,0.5,2.0,YRMSTOL,
-     +     XX,DXX,NEVAL)
+     +     XX,DXX,NEVAL,NEVALMAX)
           IF(CVERBOSE.EQ.'y')THEN
             WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
           END IF
@@ -595,7 +595,7 @@ C -> REFINAMOS x --------------------------------------------------------------
             WRITE(*,*) XX0(1)
           END IF
           CALL DOWNHILL(1,XX0,DXX0,YFUNK_SPLFIT1,1.0,0.5,2.0,YRMSTOL,
-     +     XX,DXX,NEVAL)
+     +     XX,DXX,NEVAL,NEVALMAX)
           IF(CVERBOSE.EQ.'y')THEN
             WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
           END IF
@@ -629,7 +629,7 @@ C -> REFINAMOS y --------------------------------------------------------------
             WRITE(*,*) XX0(1)
           END IF
           CALL DOWNHILL(1,XX0,DXX0,YFUNK_SPLFIT2,1.0,0.5,2.0,YRMSTOL,
-     +     XX,DXX,NEVAL)
+     +     XX,DXX,NEVAL,NEVALMAX)
           IF(CVERBOSE.EQ.'y')THEN
             WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
           END IF
@@ -677,7 +677,7 @@ C -> refinamos todos los nodos-------------------------------------------------
                 WRITE(*,*) XX0(1)
               END IF
               CALL DOWNHILL(1,XX0,DXX0,YFUNK_SPLFIT2,1.0,0.5,2.0,
-     +         YRMSTOL,XX,DXX,NEVAL)
+     +         YRMSTOL,XX,DXX,NEVAL,NEVALMAX)
               IF(CVERBOSE.EQ.'y')THEN
                 WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
               END IF
@@ -709,7 +709,7 @@ C -> refinamos todos los nodos-------------------------------------------------
                 WRITE(*,*) XX0(1),XX0(2)
               END IF
               CALL DOWNHILL(2,XX0,DXX0,YFUNK_SPLFIT3,1.0,0.5,2.0,
-     +         YRMSTOL,XX,DXX,NEVAL)
+     +         YRMSTOL,XX,DXX,NEVAL,NEVALMAX)
               IF(CVERBOSE.EQ.'y')THEN
                 WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
               END IF
