@@ -58,8 +58,9 @@ C
         IF((LNOR).AND.(MODE.NE.0))THEN
           WRITE(*,100) 'MODE='
           WRITE(*,*) MODE
-          STOP 'FATAL ERROR in POLFIT: data normalization not '//
-     +     'possible with MODE.NE.0.0'
+          WRITE(*,101) 'FATAL ERROR in POLFIT: data normalization '//
+     +     'not possible with MODE.NE.0.0'
+          STOP
         END IF
 C------------------------------------------------------------------------------
 c normalizamos X,Y para que tengan valores en el intervalo [-1,+1], solo
@@ -245,6 +246,7 @@ c
         end if
 c
 100     FORMAT(A,$)
+101     FORMAT(A)
         END
 C
 C******************************************************************************
