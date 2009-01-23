@@ -66,8 +66,9 @@ C
             WRITE(*,*) I
             WRITE(*,100) 'IMAX: '
             WRITE(*,*) IMAX
-            STOP 'It is not possible to merge the first and'//
+            WRITE(*,101) 'It is not possible to merge the first and'//
      +       ' the last knot!'
+            STOP
           ELSEIF(I.EQ.1)THEN
             NN=NN+1
             XX(NN)=X(1)
