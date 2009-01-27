@@ -131,6 +131,15 @@ C------------------------------------------------------------------------------
           END DO
         END IF
 C------------------------------------------------------------------------------
+        I0=1
+        IF(NFIXED_D.GT.0)THEN
+          DO I=1,NFIXED_D
+            CALL CUBSPLXP(XDD,YD,A,B,C,ND,I0,XFIXED_D(I),YF0)
+            F=F+DBLE(FIXEDWEIGHT_D)*
+     +       DBLE(ABS(YFIXED_D(I)-YF0))**DBLE(POWER)
+          END DO
+        END IF
+C------------------------------------------------------------------------------
         F=F/DBLE(NF)
         YFUNK_SPLFIT2=REAL(F)
 C
