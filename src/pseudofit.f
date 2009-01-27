@@ -38,6 +38,7 @@ C REAL POWER -> power to be used to compute distances
 C REAL EPOWER -> power to be used to weight errors
 C LOGICAL LUP -> .TRUE.: fit upper side
 C                .FALSE.: fit lower side
+C REAL TSIGMA -> cut-off parameter for errors
 C REAL A(NTERMS) -> fitted coefficients
 C
 Comment
@@ -131,7 +132,7 @@ C distinguimos entre los puntos que estan dentro y los que estan fuera
             DO J=1,NF
               YDUM=FPOLY(NTERMS-1,A,XF(J))
               IF(LLUP)THEN
-                IF(YDUM.LE.YF(J))THEN
+                IF(YDUM.LT.YF(J)-TSIGMA*EYF(J))THEN
                   XICOEFF(J)=WEIGHT
                   NOUTSIDE=NOUTSIDE+1
                 ELSE
@@ -139,7 +140,7 @@ C distinguimos entre los puntos que estan dentro y los que estan fuera
                   NINSIDE=NINSIDE+1
                 END IF
               ELSE
-                IF(YDUM.GE.YF(J))THEN
+                IF(YDUM.GT.YF(J)+TSIGMA*EYF(J))THEN
                   XICOEFF(J)=WEIGHT
                   NOUTSIDE=NOUTSIDE+1
                 ELSE
