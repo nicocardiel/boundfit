@@ -211,10 +211,10 @@ C------------------------------------------------------------------------------
                 WRITE(CDUMMY,*) YFIXED_D(I)
                 WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
               END IF
-              YFIXED_D(I)=BY*YFIXED_D(I)-CY
+              YFIXED_D(I)=BY*YFIXED_D(I)/BX
             END DO
-            WRITE(*,*)
           END IF
+          WRITE(*,*)
         ELSE
           NFIXED_F=0
           NFIXED_D=0
