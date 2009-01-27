@@ -1,5 +1,5 @@
 C------------------------------------------------------------------------------
-C Copyright 2008 Nicolas Cardiel
+C Copyright 2009 Nicolas Cardiel
 C
 C This file is part of BoundFit.
 C 
@@ -44,7 +44,7 @@ C variables
         INTEGER ISTATUS
         INTEGER NDATABUFF
         INTEGER NTERMS
-        INTEGER NFIXED
+        INTEGER NFIXED_F,NFIXED_D
         INTEGER ILUP
         INTEGER NEVALMAX
         INTEGER IKNOT,NKNOTS
@@ -54,8 +54,9 @@ C variables
         REAL XDATA(NDATAMAX)
         REAL YDATA(NDATAMAX)
         REAL EYDATA(NDATAMAX)
-        REAL XFIXED(NFIXEDMAX),YFIXED(NFIXEDMAX)
-        REAL FIXEDWEIGHT
+        REAL XFIXED_F(NFIXEDMAX),YFIXED_F(NFIXEDMAX)
+        REAL XFIXED_D(NFIXEDMAX),YFIXED_D(NFIXEDMAX)
+        REAL FIXEDWEIGHT_F,FIXEDWEIGHT_D
         REAL XMINBUFF,XMAXBUFF
         REAL WEIGHT,POWER,EPOWER
         REAL TSIGMA
@@ -70,6 +71,7 @@ C variables
         CHARACTER*1 COPC
         CHARACTER*1 CVERBOSE
         CHARACTER*1 CEQUI
+        CHARACTER*1 CWEIGHT
         CHARACTER*50 CDUMMY
         CHARACTER*255 COEFFFILE
         LOGICAL LOOP
@@ -84,9 +86,10 @@ C common blocks
         COMMON/BLKNORM/BX,CX,BY,CY
         COMMON/BLKOUT_NDATA/NDATA
         COMMON/BLKOUT_XY/XP,YP
-        COMMON/BLKFIXED1/NFIXED
-        COMMON/BLKFIXED2/XFIXED,YFIXED
-        COMMON/BLKFIXED3/FIXEDWEIGHT
+        COMMON/BLKFIXED1/NFIXED_F,NFIXED_D
+        COMMON/BLKFIXED2F/XFIXED_F,YFIXED_F
+        COMMON/BLKFIXED2D/XFIXED_D,YFIXED_D
+        COMMON/BLKFIXED3/FIXEDWEIGHT_F,FIXEDWEIGHT_D
 C------------------------------------------------------------------------------
 C welcome message
         WRITE(*,*)
@@ -94,7 +97,7 @@ C welcome message
         WRITE(*,101) '      Welcome to BoundFit '//
      +   '(version '//VERSION//')'
         WRITE(*,101) '-----------------------------------------------'
-        WRITE(*,101) 'For more details see Cardiel (2009) or visit:'
+        WRITE(*,101) 'For more details see Cardiel (2009) and visit:'
         WRITE(*,101) 'http://www.ucm.es/info/Astrof/software/boundfit'
         WRITE(*,101) '***********************************************'
         WRITE(*,*)
@@ -110,71 +113,120 @@ C read data file
 C------------------------------------------------------------------------------
 C type of fit
 10      WRITE(*,*)
-        WRITE(*,101) '(1) Boundary fitting to a simple polynomial'
-        WRITE(*,101) '(2) Boundary fitting to adaptive splines'
+        WRITE(*,101) '(1) Simple polynomial (simplified version)'
+        WRITE(*,101) '(2) Simple polynomial (generic version)'
+        WRITE(*,101) '(3) Boundary fitting to adaptive splines'
         WRITE(*,101) '(0) EXIT'
         WRITE(*,100) 'Select type of fit............'
-        IOPC=READILIM_B('0',0,2)
+        IOPC=READILIM_B('0',0,3)
         IF(LECHO)THEN
           WRITE(CDUMMY,*) IOPC
           WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
         END IF
         IF(IOPC.EQ.0) STOP 'End of program execution!'
 C------------------------------------------------------------------------------
-        WRITE(*,*)
-        WRITE(*,100) 'Number of fixed points..................'
-        NFIXED=READI_B('0')
-        IF(LECHO)THEN
-          WRITE(CDUMMY,*) NFIXED
-          WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
-        END IF
-        IF(IOPC.EQ.0) STOP 'End of program execution!'
-        IF(NFIXED.GT.NFIXEDMAX)THEN
-          WRITE(*,100) 'NFIXEDMAX: '
-          WRITE(*,*) NFIXEDMAX
-          WRITE(*,100) 'NFIXED...: '
-          WRITE(*,*) NFIXED
-          WRITE(*,101) 'FATAL ERROR#2: NFIXED.GT.NFIXEDMAX'
-          STOP
-        END IF
-        IF(NFIXED.LT.0)THEN
-          WRITE(*,101) 'WARNING: invalid number. NFIXED set to 0.'
-          NFIXED=0
-        ELSEIF(NFIXED.GT.0)THEN
-          WRITE(*,100) 'Weight for fixed points.....(Lambda) '
-          FIXEDWEIGHT=READF_B('1.E6')
+        IF(IOPC.GT.1)THEN
+          WRITE(*,*)
+          WRITE(*,100) 'Number of fixed function points.........'
+          NFIXED_F=READI_B('0')
           IF(LECHO)THEN
-            WRITE(CDUMMY,*) FIXEDWEIGHT
+            WRITE(CDUMMY,*) NFIXED_F
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          DO I=1,NFIXED
-            WRITE(*,'(A,I2,A,$)') 'X-coordinate of point #',I,
-     +       '...................'
-            XFIXED(I)=READF_B('@')
+          IF(NFIXED_F.GT.NFIXEDMAX)THEN
+            WRITE(*,100) 'NFIXEDMAX: '
+            WRITE(*,*) NFIXEDMAX
+            WRITE(*,100) 'NFIXED_F.: '
+            WRITE(*,*) NFIXED_F
+            WRITE(*,101) 'FATAL ERROR#2: NFIXED_F.GT.NFIXEDMAX'
+            STOP
+          END IF
+          IF(NFIXED_F.LT.0)THEN
+            WRITE(*,101) 'WARNING: invalid number. NFIXED_F set to 0.'
+            NFIXED_F=0
+          ELSEIF(NFIXED_F.GT.0)THEN
+            WRITE(*,100) 'Weight for fixed points.....(Lambda) '
+            FIXEDWEIGHT_F=READF_B('1.E6')
             IF(LECHO)THEN
-              WRITE(CDUMMY,*) XFIXED(I)
+              WRITE(CDUMMY,*) FIXEDWEIGHT_F
               WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
             END IF
-            XFIXED(I)=BX*XFIXED(I)-CX
-            WRITE(*,'(A,I2,A,$)') 'Y-coordinate of point #',I,
-     +       '...................'
-            YFIXED(I)=READF_B('@')
-            IF(LECHO)THEN
-              WRITE(CDUMMY,*) YFIXED(I)
-              WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
-            END IF
-            YFIXED(I)=BY*YFIXED(I)-CY
-          END DO
+            DO I=1,NFIXED_F
+              WRITE(*,'(A,I2,A,$)') 'X-coordinate of point #',I,
+     +         '...................'
+              XFIXED_F(I)=READF_B('@')
+              IF(LECHO)THEN
+                WRITE(CDUMMY,*) XFIXED_F(I)
+                WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+              END IF
+              XFIXED_F(I)=BX*XFIXED_F(I)-CX
+              WRITE(*,'(A,I2,A,$)') 'Y-coordinate of point #',I,
+     +         '...................'
+              YFIXED_F(I)=READF_B('@')
+              IF(LECHO)THEN
+                WRITE(CDUMMY,*) YFIXED_F(I)
+                WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+              END IF
+              YFIXED_F(I)=BY*YFIXED_F(I)-CY
+            END DO
+          END IF
           WRITE(*,*)
+          WRITE(*,100) 'Number of fixed derivative points.......'
+          NFIXED_D=READI_B('0')
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) NFIXED_D
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
+          IF(NFIXED_D.GT.NFIXEDMAX)THEN
+            WRITE(*,100) 'NFIXEDMAX: '
+            WRITE(*,*) NFIXEDMAX
+            WRITE(*,100) 'NFIXED_D.: '
+            WRITE(*,*) NFIXED_D
+            WRITE(*,101) 'FATAL ERROR#2: NFIXED_D.GT.NFIXEDMAX'
+            STOP
+          END IF
+          IF(NFIXED_D.LT.0)THEN
+            WRITE(*,101) 'WARNING: invalid number. NFIXED_D set to 0.'
+            NFIXED_D=0
+          ELSEIF(NFIXED_D.GT.0)THEN
+            WRITE(*,100) 'Weight for fixed points.....(Lambda) '
+            FIXEDWEIGHT_D=READF_B('1.E6')
+            IF(LECHO)THEN
+              WRITE(CDUMMY,*) FIXEDWEIGHT_D
+              WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+            END IF
+            DO I=1,NFIXED_D
+              WRITE(*,'(A,I2,A,$)') 'X-coordinate of point #',I,
+     +         '...................'
+              XFIXED_D(I)=READF_B('@')
+              IF(LECHO)THEN
+                WRITE(CDUMMY,*) XFIXED_D(I)
+                WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+              END IF
+              XFIXED_D(I)=BX*XFIXED_D(I)-CX
+              WRITE(*,'(A,I2,A,$)') 'Y-coordinate of point #',I,
+     +         '...................'
+              YFIXED_D(I)=READF_B('@')
+              IF(LECHO)THEN
+                WRITE(CDUMMY,*) YFIXED_D(I)
+                WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+              END IF
+              YFIXED_D(I)=BY*YFIXED_D(I)-CY
+            END DO
+            WRITE(*,*)
+          END IF
+        ELSE
+          NFIXED_F=0
+          NFIXED_D=0
         END IF
 C------------------------------------------------------------------------------
 C..............................................................................
 C                                                      fit to simple polynomial
 C..............................................................................
-        IF(IOPC.EQ.1)THEN
+        IF((IOPC.EQ.1).OR.(IOPC.EQ.2))THEN
           !parametros para el ajuste
           WRITE(*,100) 'Polynomial degree............'
-          WRITE(CDUMMY,*) NFIXED
+          WRITE(CDUMMY,*) NFIXED_F+NFIXED_D
           NTERMS=READILIM_B(CDUMMY,0,NDEGMAX)
           IF(LECHO)THEN
             WRITE(CDUMMY,*) NTERMS
@@ -187,19 +239,30 @@ C..............................................................................
             WRITE(CDUMMY,*) WEIGHT
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          WRITE(*,100) 'Power for distances...........(alpha) '
-          POWER=READF_B('2.0')
-          IF(LECHO)THEN
-            WRITE(CDUMMY,*) POWER
-            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          IF(IOPC.EQ.1)THEN
+            POWER=2.0
+            WRITE(*,100) 'Are you weighting with errors.....(y/n) '
+            CWEIGHT=READC_B('n','yn')
+            IF(CWEIGHT.EQ.'y')THEN
+              EPOWER=2.0
+            ELSE
+              EPOWER=0.0
+            END IF
+          ELSE
+            WRITE(*,100) 'Power for distances...........(alpha) '
+            POWER=READF_B('2.0')
+            IF(LECHO)THEN
+              WRITE(CDUMMY,*) POWER
+              WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+            END IF
+            WRITE(*,100) 'Power for errors...............(beta) '
+            EPOWER=READF_B('0.0')
+            IF(LECHO)THEN
+              WRITE(CDUMMY,*) EPOWER
+              WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+            END IF
+            LOOP=.TRUE.
           END IF
-          WRITE(*,100) 'Power for errors...............(beta) '
-          EPOWER=READF_B('0.0')
-          IF(LECHO)THEN
-            WRITE(CDUMMY,*) EPOWER
-            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
-          END IF
-          LOOP=.TRUE.
           DO WHILE(LOOP)
             WRITE(*,100) 'Cut-off parameter for errors....(tau) '
             TSIGMA=READF_B('0.0')
@@ -222,21 +285,31 @@ C..............................................................................
           END IF
           LUP=(ILUP.EQ.1)
           !parametros para DOWNHILL
-          WRITE(*,100) 'YRMSTOL for DOWNHILL.................'
-          YRMSTOL=READF_B('1E-5')
+          IF(IOPC.EQ.1)THEN
+            WRITE(*,100) 'YRMSTOL for coefficients.............'
+            YRMSTOL=READF_B('1E-5')
+          ELSE
+            WRITE(*,100) 'YRMSTOL for DOWNHILL.................'
+            YRMSTOL=READF_B('1E-5')
+          END IF
           IF(LECHO)THEN
             WRITE(CDUMMY,*) YRMSTOL
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          WRITE(*,100) 'Nmaxiter in DOWNHILL '
-          NEVALMAX=READILIM_B('1000',1,1000000)
+          IF(IOPC.EQ.1)THEN
+            WRITE(*,100) 'Nmaxiter..............'
+            NEVALMAX=READILIM_B('100',1,1000000)
+          ELSE
+            WRITE(*,100) 'Nmaxiter in DOWNHILL '
+            NEVALMAX=READILIM_B('1000',1,1000000)
+          END IF
           IF(LECHO)THEN
             WRITE(CDUMMY,*) NEVALMAX
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
           !realizamos el ajuste
-          CALL PSEUDOFIT(XDATA,YDATA,EYDATA,NDATABUFF,NTERMS,YRMSTOL,
-     +     NEVALMAX,WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
+          CALL PSEUDOFIT(IOPC,XDATA,YDATA,EYDATA,NDATABUFF,NTERMS,
+     +     YRMSTOL,NEVALMAX,WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
           !deshacemos la normalizacion
           WRITE(*,100)'>>> bx,cx: '
           WRITE(*,*) BX,CX
@@ -273,7 +346,7 @@ C..............................................................................
 C..............................................................................
 C                                                       fit to adaptive splines
 C..............................................................................
-        ELSEIF(IOPC.EQ.2)THEN
+        ELSEIF(IOPC.EQ.3)THEN
           !parametros para el ajuste
           WRITE(*,100) 'Number of knots..................'
           NKNOTS=READILIM_B('@',2,20)
@@ -439,7 +512,7 @@ C save result
           ELSEIF((COPC.EQ.'c').OR.(COPC.EQ.'C'))THEN
             CALL ASKOUTFILE(COEFFFILE)
             OPEN(30,FILE=COEFFFILE,STATUS='NEW',FORM='FORMATTED')
-            IF(IOPC.EQ.1)THEN
+            IF((IOPC.EQ.1).OR.(IOPC.EQ.2))THEN
               WRITE(30,*) NTERMS-1
               DO K=1,NTERMS
                 WRITE(30,*) K,A(K)
@@ -506,11 +579,11 @@ C save result
               WRITE(*,101) 'FATAL ERROR#4 invalid COPC'
               STOP
             END IF
-            IF(IOPC.EQ.1)THEN !...............................simple polynomial
+            IF((IOPC.EQ.1).OR.(IOPC.EQ.2))THEN !..............simple polynomial
               DO I=1,NDATA
                 YP(I)=FPOLY(NTERMS-1,A,XP(I))
               END DO
-            ELSEIF(IOPC.EQ.2)THEN !............................adaptive splines
+            ELSEIF(IOPC.EQ.3)THEN !............................adaptive splines
               I0SPL=1 !comenzar buscando en el inicio de la tabla
               DO I=1,NDATA
                 CALL CUBSPLX(XKNOT,YKNOT,ASPL,BSPL,CSPL,

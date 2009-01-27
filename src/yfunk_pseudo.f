@@ -29,10 +29,11 @@ C
         INTEGER J
         INTEGER NF,NTERMS
         INTEGER NDEG
-        INTEGER NFIXED
+        INTEGER NFIXED_F,NFIXED_D
         REAL XF(NDATAMAX),YF(NDATAMAX),EYF(NDATAMAX)
-        REAL XFIXED(NFIXEDMAX),YFIXED(NFIXEDMAX)
-        REAL FIXEDWEIGHT
+        REAL XFIXED_F(NFIXEDMAX),YFIXED_F(NFIXEDMAX)
+        REAL XFIXED_D(NFIXEDMAX),YFIXED_D(NFIXEDMAX)
+        REAL FIXEDWEIGHT_F,FIXEDWEIGHT_D
         REAL WEIGHT,POWER,EPOWER
         REAL YPOL
         DOUBLE PRECISION W1,W2
@@ -44,9 +45,10 @@ C
         COMMON/BLKFUNKPSEUDO1/XF,YF,EYF
         COMMON/BLKFUNKPSEUDO2/WEIGHT,POWER,EPOWER,TSIGMA
         COMMON/BLKFUNKPSEUDO3/LUP
-        COMMON/BLKFIXED1/NFIXED
-        COMMON/BLKFIXED2/XFIXED,YFIXED
-        COMMON/BLKFIXED3/FIXEDWEIGHT
+        COMMON/BLKFIXED1/NFIXED_F,NFIXED_D
+        COMMON/BLKFIXED2F/XFIXED_F,YFIXED_F
+        COMMON/BLKFIXED2D/XFIXED_D,YFIXED_D
+        COMMON/BLKFIXED3/FIXEDWEIGHT_F,FIXEDWEIGHT_D
 C------------------------------------------------------------------------------
 C comprobacion inicial
         IF(TSIGMA.LT.0.0)THEN
@@ -110,11 +112,12 @@ C------------------------------------------------------------------------------
           END IF
         END IF
 C------------------------------------------------------------------------------
-        IF(NFIXED.GT.0)THEN
-          DO J=1,NFIXED
-            YPOL=FPOLY(NDEG,X,XFIXED(J))
+        IF(NFIXED_F.GT.0)THEN
+          DO J=1,NFIXED_F
+            YPOL=FPOLY(NDEG,X,XFIXED_F(J))
             DSUM=DSUM+
-     +       DBLE(FIXEDWEIGHT)*DABS(DBLE(YFIXED(J)-YPOL))**DBLE(POWER)
+     +       DBLE(FIXEDWEIGHT_F)*
+     +       DABS(DBLE(YFIXED_F(J)-YPOL))**DBLE(POWER)
           END DO
         END IF
 C------------------------------------------------------------------------------

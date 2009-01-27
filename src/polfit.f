@@ -49,6 +49,13 @@ C
         real aa(20)
         double precision combpf
 C------------------------------------------------------------------------------
+C Protecciones
+        IF(NTERMS.GT.20)THEN
+          WRITE(*,100) 'NTERMS='
+          WRITE(*,*) NTERMS
+          STOP 'FATAL ERROR in POLFIT: NTERMS must be <=20'
+        END IF
+C
         IF((MODE.NE.-1).AND.(MODE.NE.0).AND.(MODE.NE.+1))THEN
           WRITE(*,100) 'MODE='
           WRITE(*,*) MODE
