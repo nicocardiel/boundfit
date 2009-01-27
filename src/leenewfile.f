@@ -29,6 +29,7 @@ C functions
         INTEGER READI_B
         INTEGER SYSTEMFUNCTION
         INTEGER TRUEBEG,TRUELEN
+        REAL READF_B
         CHARACTER*255 READC_B
 C variables
         INTEGER I
@@ -36,7 +37,7 @@ C variables
         INTEGER ISYSTEM
         INTEGER NSKIP,NDATA
         INTEGER NX,NY,NEY
-        INTEGER NDATABUFF
+        INTEGER NDATABUFF,NDATABUFF_
         INTEGER ISTATUSEXTRAE
         INTEGER NCOMMENTS
         REAL XDATA(NDATAMAX)
@@ -46,7 +47,9 @@ C variables
         REAL XMINBUFF,XMAXBUFF
         REAL YMINBUFF,YMAXBUFF
         REAL EYMINBUFF,EYMAXBUFF
+        REAL XMINFIT,XMAXFIT
         REAL BX,CX,BY,CY
+        CHARACTER*1 CWHOLE
         CHARACTER*1 CRENORM
         CHARACTER*50 CDUMMY
         CHARACTER*255 INFILE
@@ -242,6 +245,53 @@ C mostramos datos basicos sobre los puntos leidos
         WRITE(*,*) EYMINBUFF,EYMAXBUFF
         IF(LUNREAD)THEN
           WRITE(*,101) 'WARNING: there were unread data'
+        END IF
+C------------------------------------------------------------------------------
+        WRITE(*,*)
+        WRITE(*,100) 'Are you using the whole x-range...(y/n) '
+        CWHOLE(1:1)=READC_B('y','yn')
+        IF(CWHOLE(1:1).EQ.'n')THEN
+          WRITE(*,100) 'Xmin'
+          WRITE(CDUMMY,*) XMINBUFF
+          L1=TRUEBEG(CDUMMY)
+          L2=TRUELEN(CDUMMY)
+          DO I=1,37-(L2-L1+1)
+            WRITE(*,100) '.'
+          END DO
+          XMINFIT=READF_B(CDUMMY)
+          WRITE(*,100) 'Xmax'
+          WRITE(CDUMMY,*) XMAXBUFF
+          L1=TRUEBEG(CDUMMY)
+          L2=TRUELEN(CDUMMY)
+          DO I=1,37-(L2-L1+1)
+            WRITE(*,100) '.'
+          END DO
+          XMAXFIT=READF_B(CDUMMY)
+          NDATABUFF_=NDATABUFF
+          NDATABUFF=0
+          DO I=1,NDATABUFF_
+            IF((XDATA(I).GE.XMINFIT).AND.(XDATA(I).LE.XMAXFIT))THEN
+              NDATABUFF=NDATABUFF+1
+              XDATA(NDATABUFF)=XDATA(I)
+              YDATA(NDATABUFF)=YDATA(I)
+            END IF
+          END DO
+          WRITE(*,100) '>>> No. of data points in the new range.....: '
+          WRITE(*,*) NDATABUFF
+          IF(NDATABUFF.EQ.0)THEN
+            WRITE(*,*)
+            WRITE(*,101) 'FATAL ERROR: unexpected end of file reached'
+            STOP
+          END IF
+          CALL FINDMML(NDATABUFF,1,NDATABUFF,XDATA,XMINBUFF,XMAXBUFF)
+          CALL FINDMML(NDATABUFF,1,NDATABUFF,YDATA,YMINBUFF,YMAXBUFF)
+          CALL FINDMML(NDATABUFF,1,NDATABUFF,EYDATA,EYMINBUFF,EYMAXBUFF)
+          WRITE(*,100) '>>> Xmin, Xmax..............................: '
+          WRITE(*,*) XMINBUFF,XMAXBUFF
+          WRITE(*,100) '>>> Ymin, Ymax..............................: '
+          WRITE(*,*) YMINBUFF,YMAXBUFF
+          WRITE(*,100) '>>> EYmin, EYmax............................: '
+          WRITE(*,*) EYMINBUFF,EYMAXBUFF
         END IF
 C------------------------------------------------------------------------------
 C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
