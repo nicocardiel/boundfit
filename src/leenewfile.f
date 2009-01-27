@@ -274,6 +274,7 @@ C------------------------------------------------------------------------------
               NDATABUFF=NDATABUFF+1
               XDATA(NDATABUFF)=XDATA(I)
               YDATA(NDATABUFF)=YDATA(I)
+              EYDATA(NDATABUFF)=EYDATA(I)
             END IF
           END DO
           WRITE(*,100) '>>> No. of data points in the new range.....: '

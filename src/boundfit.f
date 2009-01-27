@@ -261,8 +261,8 @@ C..............................................................................
               WRITE(CDUMMY,*) EPOWER
               WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
             END IF
-            LOOP=.TRUE.
           END IF
+          LOOP=.TRUE.
           DO WHILE(LOOP)
             WRITE(*,100) 'Cut-off parameter for errors....(tau) '
             TSIGMA=READF_B('0.0')
