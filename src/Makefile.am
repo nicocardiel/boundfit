@@ -26,6 +26,7 @@ Makefile.am \
 merge_knots.f \
 ordena1f.f \
 polfit.f \
+polfit_xic.f \
 pseudofit.f \
 ranred.f \
 ranspl.f \

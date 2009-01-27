@@ -18,7 +18,7 @@ C along with BoundFit. If not, see <http://www.gnu.org/licenses/>.
 C------------------------------------------------------------------------------
 Comment
 C
-C SUBROUTINE PSEUDOFIT(XF,YF,EYF,NF,NTERMS,YRMSTOL,NEVALMAX,
+C SUBROUTINE PSEUDOFIT(IOPC,XF,YF,EYF,NF,NTERMS,YRMSTOL,NEVALMAX,
 C                      WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
 C
 C Input: XF,YF,EYF,NF,NTERMS,YRMSTOL,WEIGHT,POWER,EPOWER,LUP,CERR
@@ -27,6 +27,7 @@ C
 C Calculate the polynomial fit to the upper/lower side of a set of data
 C points.
 C
+C INTEGER IOPC -> 1: simplified version; 2: generic version
 C REAL XF(NF),YF(NF) -> data points to be fitted
 C INTEGER NF -> number of data points
 C INTEGER NTERMS -> number of coeffcients
@@ -41,13 +42,14 @@ C REAL A(NTERMS) -> fitted coefficients
 C
 Comment
 C------------------------------------------------------------------------------
-        SUBROUTINE PSEUDOFIT(XF,YF,EYF,NF,NTERMS,YRMSTOL,NEVALMAX,
+        SUBROUTINE PSEUDOFIT(IOPC,XF,YF,EYF,NF,NTERMS,YRMSTOL,NEVALMAX,
      +   WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
         IMPLICIT NONE
 C
         INCLUDE 'ndatamax.inc'
         INCLUDE 'ndegmax.inc'
 C
+        INTEGER IOPC
         INTEGER NF
         REAL XF(NF),YF(NF),EYF(NF)
         INTEGER NTERMS
@@ -62,18 +64,25 @@ C
 C
         EXTERNAL YFUNK_PSEUDO
         REAL YFUNK_PSEUDO
+        REAL FPOLY
 C
         INTEGER NNF,NNTERMS
         INTEGER J,K
         INTEGER NEVAL
+        INTEGER MODE
+        INTEGER NINSIDE,NOUTSIDE
         REAL WWEIGHT
         REAL PPOWER
         REAL EEPOWER
         REAL XXF(NDATAMAX),YYF(NDATAMAX),EYYF(NDATAMAX)
         REAL X0(NDEGMAX+1),DX0(NDEGMAX+1),X(NDEGMAX+1),DX(NDEGMAX+1)
+        REAL AA(NDEGMAX+1),DA(NDEGMAX+1)
         REAL CHISQR
         REAL TTSIGMA
+        REAL YDUM
+        REAL XICOEFF(NDATAMAX)
         LOGICAL LLUP
+        LOGICAL LOOP
 C
         COMMON/BLKFUNKPSEUDO0/NNF,NNTERMS
         COMMON/BLKFUNKPSEUDO1/XXF,YYF,EYYF
@@ -93,8 +102,87 @@ C protecciones
           WRITE(*,*) NDEGMAX
           STOP 'FATAL ERROR: NTERMS.GT.(NDEGMAX+1) in PSEUDOFIT.'
         END IF
-C inicializacion (duplicamos los argumentos de entrada de la subrutina para 
-C poder pasar la información mediante COMMON blocks a la funcion a minimizar)
+C------------------------------------------------------------------------------
+        IF(IOPC.EQ.1)THEN !..................................simplified version
+          IF(EPOWER.EQ.0.0)THEN
+            MODE=0 !sin pesar con errores
+          ELSE
+            MODE=1 !pesando con errores
+          END IF
+C hacemos un ajuste inicial con uso simetrico de los datos
+          DO J=1,NF
+            XICOEFF(J)=1.0
+          END DO
+          CALL POLFIT_XIC(XF,YF,EYF,XICOEFF,NF,NTERMS,MODE,A)
+          WRITE(*,*)
+          WRITE(*,101) '***********************************************'
+          WRITE(*,101) '* Initial fit results:'
+          DO K=1,NTERMS
+            WRITE(*,'(A6,I2.2,A2,$)') '>>> A(',K-1,')='
+            WRITE(*,*) A(K)
+          END DO
+          WRITE(*,101) '-----------------------------------------------'
+C distinguimos entre los puntos que estan dentro y los que estan fuera
+          NEVAL=0
+          LOOP=.TRUE.
+          DO WHILE(LOOP)
+            NINSIDE=0
+            NOUTSIDE=0
+            DO J=1,NF
+              YDUM=FPOLY(NTERMS-1,A,XF(J))
+              IF(LLUP)THEN
+                IF(YDUM.LE.YF(J))THEN
+                  XICOEFF(J)=WEIGHT
+                  NOUTSIDE=NOUTSIDE+1
+                ELSE
+                  XICOEFF(J)=1.0
+                  NINSIDE=NINSIDE+1
+                END IF
+              ELSE
+                IF(YDUM.GE.YF(J))THEN
+                  XICOEFF(J)=WEIGHT
+                  NOUTSIDE=NOUTSIDE+1
+                ELSE
+                  XICOEFF(J)=1.0
+                  NINSIDE=NINSIDE+1
+                END IF
+              END IF
+            END DO
+            WRITE(*,100) '>>> NEVAL, NFIT, NIN, NOUT: '
+            WRITE(*,*) NEVAL,NF,NINSIDE,NOUTSIDE
+            CALL POLFIT_XIC(XF,YF,EYF,XICOEFF,NF,NTERMS,MODE,AA)
+C comparamos AA con A
+            LOOP=.FALSE.
+            DO K=1,NTERMS
+              DA(K)=AA(K)-A(K)
+              IF(ABS(DA(K)).GT.YRMSTOL) LOOP=.TRUE.
+            END DO
+            DO K=1,NTERMS
+              A(K)=AA(K)
+            END DO
+            IF(LOOP)THEN
+              NEVAL=NEVAL+1
+              IF(NEVAL.GE.NEVALMAX) LOOP=.FALSE.
+            END IF
+          END DO
+          WRITE(*,*)
+          WRITE(*,101) '***********************************************'
+          WRITE(*,101) '* Final fit results:'
+          WRITE(*,*)
+          WRITE(*,100) 'NEVAL: '
+          WRITE(*,*) NEVAL
+          DO K=1,NTERMS
+            WRITE(*,'(A6,I2.2,A2,$)') '>>> A(',K-1,')='
+            WRITE(*,*) A(K),DA(K)
+          END DO
+          WRITE(*,101) '-----------------------------------------------'
+          RETURN
+        END IF
+C------------------------------------------------------------------------------
+C Si no hemos abandonado la subrutina es porque vamos a realizar el
+C ajuste utilizando DOWNHILL. En primer lugar duplicamos los argumentos de 
+C entrada de la subrutina para poder pasar la información mediante COMMON 
+C blocks a la funcion a minimizar
         NNF=NF
         NNTERMS=NTERMS
         WWEIGHT=WEIGHT
@@ -107,11 +195,10 @@ C poder pasar la información mediante COMMON blocks a la funcion a minimizar)
           YYF(J)=YF(J)
           EYYF(J)=EYF(J)
         END DO
-C------------------------------------------------------------------------------
-C Primero hacemos un ajuste tradicional para obtener una primera estimacion 
+C Hacemos un ajuste tradicional para obtener una primera estimacion 
 C (aunque pasamos array de errores en Y, el ajuste lo hacemos sin pesar)
-        CALL POLFIT(XF,YF,EYF,NF,NTERMS,0,A,CHISQR,.FALSE.,0.,0.,0.,0.)
-C------------------------------------------------------------------------------
+        CALL POLFIT(XXF,YYF,EYYF,NF,NTERMS,0,
+     +   A,CHISQR,.FALSE.,0.,0.,0.,0.)
 C Usamos DOWNHILL para calcular el ajuste final
         DO K=1,NTERMS
           X0(K)=A(K)

@@ -28,10 +28,11 @@ C
         INTEGER I0
         INTEGER NF,ND
         INTEGER NREF
-        INTEGER NFIXED
+        INTEGER NFIXED_F,NFIXED_D
         REAL XF(NDATAMAX),YF(NDATAMAX),EYF(NDATAMAX),YF0
-        REAL XFIXED(NFIXEDMAX),YFIXED(NFIXEDMAX)
-        REAL FIXEDWEIGHT
+        REAL XFIXED_F(NFIXEDMAX),YFIXED_F(NFIXEDMAX)
+        REAL XFIXED_D(NFIXEDMAX),YFIXED_D(NFIXEDMAX)
+        REAL FIXEDWEIGHT_F,FIXEDWEIGHT_D
         REAL XDD(NKNOTSMAX)
         REAL S(NKNOTSMAX),A(NKNOTSMAX),B(NKNOTSMAX),C(NKNOTSMAX)
         REAL YD(NKNOTSMAX)
@@ -48,9 +49,10 @@ C
         COMMON/BLKSPLFUNK6/NREF
         COMMON/BLKSPLFUNK7/WEIGHT,POWER,EPOWER,TSIGMA
         COMMON/BLKSPLFUNK8/LUP
-        COMMON/BLKFIXED1/NFIXED
-        COMMON/BLKFIXED2/XFIXED,YFIXED
-        COMMON/BLKFIXED3/FIXEDWEIGHT
+        COMMON/BLKFIXED1/NFIXED_F,NFIXED_D
+        COMMON/BLKFIXED2F/XFIXED_F,YFIXED_F
+        COMMON/BLKFIXED2D/XFIXED_D,YFIXED_D
+        COMMON/BLKFIXED3/FIXEDWEIGHT_F,FIXEDWEIGHT_D
 C------------------------------------------------------------------------------
 C comprobacion inicial
         IF(TSIGMA.LT.0.0)THEN
@@ -121,10 +123,11 @@ C------------------------------------------------------------------------------
         END IF
 C------------------------------------------------------------------------------
         I0=1
-        IF(NFIXED.GT.0)THEN
-          DO I=1,NFIXED
-            CALL CUBSPLX(XDD,YD,A,B,C,ND,I0,XFIXED(I),YF0)
-            F=F+DBLE(FIXEDWEIGHT)*DBLE(ABS(YFIXED(I)-YF0))**DBLE(POWER)
+        IF(NFIXED_F.GT.0)THEN
+          DO I=1,NFIXED_F
+            CALL CUBSPLX(XDD,YD,A,B,C,ND,I0,XFIXED_F(I),YF0)
+            F=F+DBLE(FIXEDWEIGHT_F)*
+     +       DBLE(ABS(YFIXED_F(I)-YF0))**DBLE(POWER)
           END DO
         END IF
 C------------------------------------------------------------------------------
