@@ -14,8 +14,10 @@ cleantab.f \
 combpf.f \
 cubspl.f \
 cubsplx.f \
+cubsplxp.f \
 downhill.f \
 factorialpf.f \
+fderi.f \
 fextrae.f \
 findmml.f \
 fpoly.f \

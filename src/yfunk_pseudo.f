@@ -24,7 +24,7 @@ C------------------------------------------------------------------------------
 C
         REAL X(NDEGMAX+1)
 C
-        REAL FPOLY
+        REAL FPOLY,FDERI
 C
         INTEGER J
         INTEGER NF,NTERMS
@@ -118,6 +118,15 @@ C------------------------------------------------------------------------------
             DSUM=DSUM+
      +       DBLE(FIXEDWEIGHT_F)*
      +       DABS(DBLE(YFIXED_F(J)-YPOL))**DBLE(POWER)
+          END DO
+        END IF
+C------------------------------------------------------------------------------
+        IF(NFIXED_D.GT.0)THEN
+          DO J=1,NFIXED_D
+            YPOL=FDERI(NDEG,X,XFIXED_D(J))
+            DSUM=DSUM+
+     +       DBLE(FIXEDWEIGHT_D)*
+     +       DABS(DBLE(YFIXED_D(J)-YPOL))**DBLE(POWER)
           END DO
         END IF
 C------------------------------------------------------------------------------
