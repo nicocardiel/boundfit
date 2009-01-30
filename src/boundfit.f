@@ -132,6 +132,7 @@ C------------------------------------------------------------------------------
         IF(IOPC.GT.1)THEN
           WRITE(*,100) 'Are you using fit constraints.....(y/n) '
           CCONSTRAINTS(1:1)=READC_B('n','yn')
+          IF(LECHO) WRITE(*,101) CCONSTRAINTS
           LCONSTRAINTS=(CCONSTRAINTS.EQ.'y')
         ELSE
           LCONSTRAINTS=.FALSE.
@@ -255,6 +256,7 @@ C..............................................................................
             POWER=2.0
             WRITE(*,100) 'Are you weighting with errors.....(y/n) '
             CWEIGHT(1:1)=READC_B('n','yn')
+            IF(LECHO) WRITE(*,101) CWEIGHT
             IF(CWEIGHT.EQ.'y')THEN
               EPOWER=2.0
             ELSE
@@ -324,6 +326,7 @@ C..............................................................................
           ELSE
             WRITE(*,100) 'Incremental fit of coefficients...(y/n) '
             CINCREMENTAL(1:1)=READC_B('n','yn')
+            IF(LECHO) WRITE(*,101) CINCREMENTAL
             LINCREMENTAL=(CINCREMENTAL.EQ.'y')
           END IF
           !realizamos el ajuste
@@ -375,6 +378,7 @@ C..............................................................................
           END IF
           WRITE(*,100) 'Equidistant knot arrangement (y/n)......'
           CEQUI(1:1)=READC_B('y','yn')
+          IF(LECHO) WRITE(*,101) CEQUI
           IF(CEQUI.EQ.'y')THEN
             !como los datos no tienen por que venir ordenados, usamos
             !los extremos en el eje X para fijar ahi al menos dos knots
@@ -397,6 +401,10 @@ C..............................................................................
                 WRITE(*,'(A,I2,$)') 'X-coordinate of knot #',K
                 WRITE(*,100) '....................'
                 XKNOT(K)=READF_B('@')
+                IF(LECHO)THEN
+                  WRITE(CDUMMY,*) XKNOT(K)
+                  WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+                END IF
                 XKNOT(K)=BX*XKNOT(K)-CX
               END DO
               CALL ORDENA1F(NKNOTS,XKNOT)

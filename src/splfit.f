@@ -69,7 +69,6 @@ C         del ajuste final.
         INCLUDE 'ndatamax.inc'
 C
         INTEGER TRUEBEG,TRUELEN
-        INTEGER READI_B
         INTEGER READILIM_B
         REAL READF_B
         REAL FPOLY
