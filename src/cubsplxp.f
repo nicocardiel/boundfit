@@ -18,9 +18,9 @@ C along with BoundFit. If not, see <http://www.gnu.org/licenses/>.
 C------------------------------------------------------------------------------
 Comment
 C
-C SUBROUTINE CUBSPLXP(X,Y,A,B,C,N,I0,X0,Y0)
+C SUBROUTINE CUBSPLXP(X,A,B,C,N,I0,X0,Y0)
 C
-C Input: X,Y,A,B,C,N,I0,X0
+C Input: X,A,B,C,N,I0,X0
 C Output: Y0
 C
 C The subroutine returns the first derivative of the cubic spline evaluated 
@@ -38,7 +38,6 @@ C If X0.LT.X(1), I=1 is employed (first computed spline)
 C If X0.GT.X(N), I=N-1 is employed (last computed spline)
 C
 C REAL X(N) -> X-values fitted with CUBSPL
-C REAL Y(N) -> Y-values fitted with CUBSPL
 C REAL A(N) -> spline coefficients
 C REAL B(N) -> spline coefficients
 C REAL C(N) -> spline coefficients
@@ -50,11 +49,11 @@ C REAL Y0 -> spline first derivative at X0
 C
 Comment
 C------------------------------------------------------------------------------
-        SUBROUTINE CUBSPLXP(X,Y,A,B,C,N,I0,X0,Y0)
+        SUBROUTINE CUBSPLXP(X,A,B,C,N,I0,X0,Y0)
         IMPLICIT NONE
 C
         INTEGER N
-        REAL X(N),Y(N)
+        REAL X(N)
         REAL A(N),B(N),C(N)
         INTEGER I0
         REAL X0,Y0

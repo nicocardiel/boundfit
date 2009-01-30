@@ -21,16 +21,10 @@ C------------------------------------------------------------------------------
 C
         INCLUDE 'ndatamax.inc'
 C
-        INTEGER TRUEBEG
-        INTEGER TRUELEN
-        CHARACTER*255 READC_B
-C
         INTEGER I
-        INTEGER L1,L2
         INTEGER NDATA
         REAL XP(NDATAMAX),YP(NDATAMAX)
         CHARACTER*255 OUTFILE
-        LOGICAL LOGFILE
         LOGICAL LECHO
 C
         COMMON/BLKLECHO/LECHO
@@ -45,6 +39,4 @@ C
         END DO
         CLOSE(20)
 C
-100     FORMAT(A,$)
-101     FORMAT(A)
         END
