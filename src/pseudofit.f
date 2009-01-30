@@ -18,17 +18,20 @@ C along with BoundFit. If not, see <http://www.gnu.org/licenses/>.
 C------------------------------------------------------------------------------
 Comment
 C
-C SUBROUTINE PSEUDOFIT(IOPC,XF,YF,EYF,NF,NTERMS,YRMSTOL,NEVALMAX,
+C SUBROUTINE PSEUDOFIT(IOPC,LINCREMENTAL,XF,YF,EYF,NF,NTERMS,
+C                      YRMSTOL,NEVALMAX,
 C                      WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
 C
-C Input: XF,YF,EYF,NF,NTERMS,YRMSTOL,WEIGHT,POWER,EPOWER,LUP,CERR
+C Input: IOPC,LINCREMENTAL,XF,YF,EYF,NF,NTERMS
+C Input: YRMSTOL,NEVALMAX,WEIGHT,POWER,EPOWER,LUP,TSIGMA
 C Output: A
 C
 C Calculate the polynomial fit to the upper/lower side of a set of data
 C points.
 C
 C INTEGER IOPC -> 1: simplified version; 2: generic version
-C REAL XF(NF),YF(NF) -> data points to be fitted
+C LOGICAL LINCREMENTAL -> .TRUE.: incremental fit of coefficients
+C REAL XF(NF),YF(NF), EYF(NF) -> data points to be fitted
 C INTEGER NF -> number of data points
 C INTEGER NTERMS -> number of coeffcients
 C REAL YRMSTOL -> stopping criterion for DOWNHILL
@@ -43,8 +46,8 @@ C REAL A(NTERMS) -> fitted coefficients
 C
 Comment
 C------------------------------------------------------------------------------
-        SUBROUTINE PSEUDOFIT(IOPC,XF,YF,EYF,NF,NTERMS,YRMSTOL,NEVALMAX,
-     +   WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
+        SUBROUTINE PSEUDOFIT(IOPC,LINCREMENTAL,XF,YF,EYF,NF,NTERMS,
+     +   YRMSTOL,NEVALMAX,WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
         IMPLICIT NONE
 C
         INCLUDE 'ndatamax.inc'
@@ -62,6 +65,7 @@ C
         LOGICAL LUP
         REAL TSIGMA
         REAL A(NTERMS)
+        LOGICAL LINCREMENTAL
 C
         EXTERNAL YFUNK_PSEUDO
         REAL YFUNK_PSEUDO
@@ -185,7 +189,6 @@ C ajuste utilizando DOWNHILL. En primer lugar duplicamos los argumentos de
 C entrada de la subrutina para poder pasar la información mediante COMMON 
 C blocks a la funcion a minimizar
         NNF=NF
-        NNTERMS=NTERMS
         WWEIGHT=WEIGHT
         PPOWER=POWER
         EEPOWER=EPOWER
@@ -196,23 +199,44 @@ C blocks a la funcion a minimizar
           YYF(J)=YF(J)
           EYYF(J)=EYF(J)
         END DO
+C
+        IF(LINCREMENTAL)THEN
+          NNTERMS=1
+        ELSE
+          NNTERMS=NTERMS
+        END IF
+C
 C Hacemos un ajuste tradicional para obtener una primera estimacion 
 C (aunque pasamos array de errores en Y, el ajuste lo hacemos sin pesar)
-        CALL POLFIT(XXF,YYF,EYYF,NF,NTERMS,0,
+        CALL POLFIT(XXF,YYF,EYYF,NNF,NNTERMS,0,
      +   A,CHISQR,.FALSE.,0.,0.,0.,0.)
-C Usamos DOWNHILL para calcular el ajuste final
-        DO K=1,NTERMS
-          X0(K)=A(K)
-          IF(A(K).NE.0.0)THEN
-            DX0(K)=0.01*A(K)
+C
+        LOOP=.TRUE.
+        DO WHILE(LOOP)
+          !Usamos DOWNHILL para calcular el ajuste final
+          DO K=1,NNTERMS
+            X0(K)=A(K)
+            IF(A(K).NE.0.0)THEN
+              DX0(K)=0.01*A(K)
+            ELSE
+              DX0(K)=1.0
+            END IF
+          END DO
+          CALL DOWNHILL(NNTERMS,X0,DX0,YFUNK_PSEUDO,1.0,0.5,2.0,
+     +     YRMSTOL,X,DX,NEVAL,NEVALMAX)
+          DO K=1,NNTERMS
+            A(K)=X(K)
+          END DO
+          IF(LINCREMENTAL)THEN
+            IF(NNTERMS.EQ.NTERMS)THEN
+              LOOP=.FALSE.
+            ELSE
+              NNTERMS=NNTERMS+1
+              A(NNTERMS)=-A(NNTERMS-1) !valor inicial para nuevo coeficiente
+            END IF
           ELSE
-            DX0(K)=1.0
+            LOOP=.FALSE.
           END IF
-        END DO
-        CALL DOWNHILL(NTERMS,X0,DX0,YFUNK_PSEUDO,1.0,0.5,2.0,YRMSTOL,
-     +   X,DX,NEVAL,NEVALMAX)
-        DO K=1,NTERMS
-          A(K)=X(K)
         END DO
 C------------------------------------------------------------------------------
         WRITE(*,*)
@@ -220,7 +244,7 @@ C------------------------------------------------------------------------------
         WRITE(*,101) '* Fit results:'
         WRITE(*,100) 'NEVAL: '
         WRITE(*,*) NEVAL
-        DO K=1,NTERMS
+        DO K=1,NNTERMS
           WRITE(*,'(A6,I2.2,A2,$)') '>>> A(',K-1,')='
           WRITE(*,*) X(K),DX(K)
         END DO

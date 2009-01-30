@@ -72,11 +72,15 @@ C variables
         CHARACTER*1 CVERBOSE
         CHARACTER*1 CEQUI
         CHARACTER*1 CWEIGHT
+        CHARACTER*1 CCONSTRAINTS
+        CHARACTER*1 CINCREMENTAL
         CHARACTER*50 CDUMMY
         CHARACTER*255 COEFFFILE
         LOGICAL LOOP
         LOGICAL LUP
         LOGICAL LECHO
+        LOGICAL LCONSTRAINTS
+        LOGICAL LINCREMENTAL
 C common blocks
         COMMON/BLKLECHO/LECHO
         COMMON/BLKCVERBOSE/CVERBOSE
@@ -126,6 +130,14 @@ C type of fit
         IF(IOPC.EQ.0) STOP 'End of program execution!'
 C------------------------------------------------------------------------------
         IF(IOPC.GT.1)THEN
+          WRITE(*,100) 'Are you using fit constraints.....(y/n) '
+          CCONSTRAINTS(1:1)=READC_B('n','yn')
+          LCONSTRAINTS=(CCONSTRAINTS.EQ.'y')
+        ELSE
+          LCONSTRAINTS=.FALSE.
+        END IF
+C
+        IF(LCONSTRAINTS)THEN
           WRITE(*,*)
           WRITE(*,100) 'Number of fixed function points.........'
           NFIXED_F=READI_B('0')
@@ -242,7 +254,7 @@ C..............................................................................
           IF(IOPC.EQ.1)THEN
             POWER=2.0
             WRITE(*,100) 'Are you weighting with errors.....(y/n) '
-            CWEIGHT=READC_B('n','yn')
+            CWEIGHT(1:1)=READC_B('n','yn')
             IF(CWEIGHT.EQ.'y')THEN
               EPOWER=2.0
             ELSE
@@ -307,9 +319,16 @@ C..............................................................................
             WRITE(CDUMMY,*) NEVALMAX
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
+          IF(IOPC.EQ.1)THEN
+            LINCREMENTAL=.FALSE.
+          ELSE
+            WRITE(*,100) 'Incremental fit of coefficients...(y/n) '
+            CINCREMENTAL(1:1)=READC_B('n','yn')
+            LINCREMENTAL=(CINCREMENTAL.EQ.'y')
+          END IF
           !realizamos el ajuste
-          CALL PSEUDOFIT(IOPC,XDATA,YDATA,EYDATA,NDATABUFF,NTERMS,
-     +     YRMSTOL,NEVALMAX,WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
+          CALL PSEUDOFIT(IOPC,LINCREMENTAL,XDATA,YDATA,EYDATA,NDATABUFF,
+     +     NTERMS,YRMSTOL,NEVALMAX,WEIGHT,POWER,EPOWER,LUP,TSIGMA,A)
           !deshacemos la normalizacion
           WRITE(*,100)'>>> bx,cx: '
           WRITE(*,*) BX,CX
