@@ -135,7 +135,7 @@ C distinguimos entre los puntos que estan dentro y los que estan fuera
             NOUTSIDE=0
             DO J=1,NF
               YDUM=FPOLY(NTERMS-1,A,XF(J))
-              IF(LLUP)THEN
+              IF(LUP)THEN
                 IF(YDUM.LT.YF(J)-TSIGMA*EYF(J))THEN
                   XICOEFF(J)=WEIGHT
                   NOUTSIDE=NOUTSIDE+1
