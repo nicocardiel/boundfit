@@ -250,6 +250,7 @@ C------------------------------------------------------------------------------
         WRITE(*,*)
         WRITE(*,100) 'Are you using the whole x-range...(y/n) '
         CWHOLE(1:1)=READC_B('y','yn')
+        IF(LECHO) WRITE(*,101) CWHOLE
         IF(CWHOLE(1:1).EQ.'n')THEN
           WRITE(*,100) 'Xmin'
           WRITE(CDUMMY,*) XMINBUFF
@@ -259,6 +260,10 @@ C------------------------------------------------------------------------------
             WRITE(*,100) '.'
           END DO
           XMINFIT=READF_B(CDUMMY)
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) XMINFIT
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
           WRITE(*,100) 'Xmax'
           WRITE(CDUMMY,*) XMAXBUFF
           L1=TRUEBEG(CDUMMY)
@@ -267,6 +272,10 @@ C------------------------------------------------------------------------------
             WRITE(*,100) '.'
           END DO
           XMAXFIT=READF_B(CDUMMY)
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) XMAXFIT
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
           NDATABUFF_=NDATABUFF
           NDATABUFF=0
           DO I=1,NDATABUFF_
