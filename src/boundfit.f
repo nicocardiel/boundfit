@@ -127,7 +127,7 @@ C type of fit
           WRITE(CDUMMY,*) IOPC
           WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
         END IF
-        IF(IOPC.EQ.0) STOP 'End of program execution!'
+        IF(IOPC.EQ.0) STOP 'End of BoundFit execution!'
 C------------------------------------------------------------------------------
         IF(IOPC.GT.1)THEN
           WRITE(*,100) 'Are you using fit constraints.....(y/n) '
@@ -556,7 +556,7 @@ C save result
             CLOSE(30)
           ELSEIF(COPC.EQ.'0')THEN
             WRITE(*,*)
-            STOP 'End of program execution!'
+            STOP 'End of BoundFit execution!'
           ELSE
             IF(COPC.EQ.'1')THEN
               !xmin
