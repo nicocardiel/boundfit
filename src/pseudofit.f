@@ -29,7 +29,7 @@ C
 C Calculate the polynomial fit to the upper/lower side of a set of data
 C points.
 C
-C INTEGER IOPC -> 1: simplified version; 2: generic version
+C INTEGER IOPC -> 1: generic version; 2: simplified version
 C LOGICAL LINCREMENTAL -> .TRUE.: incremental fit of coefficients
 C REAL XF(NF),YF(NF), EYF(NF) -> data points to be fitted
 C INTEGER NF -> number of data points
@@ -108,7 +108,7 @@ C protecciones
           STOP 'FATAL ERROR: NTERMS.GT.(NDEGMAX+1) in PSEUDOFIT.'
         END IF
 C------------------------------------------------------------------------------
-        IF(IOPC.EQ.1)THEN !..................................simplified version
+        IF(IOPC.EQ.2)THEN !..................................simplified version
           IF(EPOWER.EQ.0.0)THEN
             MODE=0 !sin pesar con errores
           ELSE
