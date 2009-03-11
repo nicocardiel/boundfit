@@ -119,10 +119,11 @@ C type of fit
 10      WRITE(*,*)
         WRITE(*,101) '(1) Simple polynomial (simplified version)'
         WRITE(*,101) '(2) Simple polynomial (generic version)'
-        WRITE(*,101) '(3) Boundary fitting to adaptive splines'
+        WRITE(*,101) '(3) Adaptive splines'
         WRITE(*,101) '(0) EXIT'
         WRITE(*,100) 'Select type of fit............'
         IOPC=READILIM_B('0',0,3)
+        WRITE(*,*)
         IF(LECHO)THEN
           WRITE(CDUMMY,*) IOPC
           WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
