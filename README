@@ -1,7 +1,7 @@
 This is BoundFit, a program that perform boundary fits. This program is based
-on the method described in Cardiel (2009, submitted).
+on the method described in Cardiel (2009, MNRAS, in press).
 
-This software is distributed under GPL , either version 3 of the License, or
+This software is distributed under GPL, either version 3 of the License, or
 (at your option) any later version. See the file COPYING for details.
 
 Maintainer: ncl@astrax.fis.ucm.es

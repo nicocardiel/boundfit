@@ -4,7 +4,7 @@
 #
 
 # Prelude
-AC_INIT(boundfit,03.00,[ncl@astrax.fis.ucm.es])
+AC_INIT(boundfit,03.01,[ncl@astrax.fis.ucm.es])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([config.h.in])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])

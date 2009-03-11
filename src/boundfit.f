@@ -101,7 +101,9 @@ C welcome message
         WRITE(*,101) '      Welcome to BoundFit '//
      +   '(version '//VERSION//')'
         WRITE(*,101) '-----------------------------------------------'
-        WRITE(*,101) 'For more details see Cardiel (2009) and visit:'
+        WRITE(*,101) '> For more details see:'
+        WRITE(*,101) 'Cardiel, N., 2009, MNRAS, in press'
+        WRITE(*,101) '> and visit:'
         WRITE(*,101) 'http://www.ucm.es/info/Astrof/software/boundfit'
         WRITE(*,101) '***********************************************'
         WRITE(*,*)
@@ -117,20 +119,20 @@ C read data file
 C------------------------------------------------------------------------------
 C type of fit
 10      WRITE(*,*)
-        WRITE(*,101) '(1) Simple polynomial (simplified version)'
-        WRITE(*,101) '(2) Simple polynomial (generic version)'
+        WRITE(*,101) '(1) Simple polynomial (generic version)'
+        WRITE(*,101) '(2) Simple polynomial (simplified version)'
         WRITE(*,101) '(3) Adaptive splines'
         WRITE(*,101) '(0) EXIT'
         WRITE(*,100) 'Select type of fit............'
         IOPC=READILIM_B('0',0,3)
-        WRITE(*,*)
         IF(LECHO)THEN
           WRITE(CDUMMY,*) IOPC
           WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
         END IF
+        WRITE(*,*)
         IF(IOPC.EQ.0) STOP 'End of BoundFit execution!'
 C------------------------------------------------------------------------------
-        IF(IOPC.GT.1)THEN
+        IF(IOPC.NE.2)THEN
           WRITE(*,100) 'Are you using fit constraints.....(y/n) '
           CCONSTRAINTS(1:1)=READC_B('n','yn')
           IF(LECHO) WRITE(*,101) CCONSTRAINTS
@@ -253,7 +255,7 @@ C..............................................................................
             WRITE(CDUMMY,*) WEIGHT
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          IF(IOPC.EQ.1)THEN
+          IF(IOPC.EQ.2)THEN
             POWER=2.0
             WRITE(*,100) 'Are you weighting with errors.....(y/n) '
             CWEIGHT(1:1)=READC_B('n','yn')
@@ -300,7 +302,7 @@ C..............................................................................
           END IF
           LUP=(ILUP.EQ.1)
           !parametros para DOWNHILL
-          IF(IOPC.EQ.1)THEN
+          IF(IOPC.EQ.2)THEN
             WRITE(*,100) 'YRMSTOL for coefficients.............'
             YRMSTOL=READF_B('1E-5')
           ELSE
@@ -311,7 +313,7 @@ C..............................................................................
             WRITE(CDUMMY,*) YRMSTOL
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          IF(IOPC.EQ.1)THEN
+          IF(IOPC.EQ.2)THEN
             WRITE(*,100) 'Nmaxiter..............'
             NEVALMAX=READILIM_B('100',1,1000000)
           ELSE
@@ -322,7 +324,7 @@ C..............................................................................
             WRITE(CDUMMY,*) NEVALMAX
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          IF(IOPC.EQ.1)THEN
+          IF(IOPC.EQ.2)THEN
             LINCREMENTAL=.FALSE.
           ELSE
             WRITE(*,100) 'Incremental fit of coefficients...(y/n) '
