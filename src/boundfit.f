@@ -102,7 +102,7 @@ C welcome message
      +   '(version '//VERSION//')'
         WRITE(*,101) '-----------------------------------------------'
         WRITE(*,101) '> For more details see:'
-        WRITE(*,101) 'Cardiel, N., 2009, MNRAS, in press'
+        WRITE(*,101) 'Cardiel, N., 2009, MNRAS, astro-ph/0903.2068'
         WRITE(*,101) '> and visit:'
         WRITE(*,101) 'http://www.ucm.es/info/Astrof/software/boundfit'
         WRITE(*,101) '***********************************************'
