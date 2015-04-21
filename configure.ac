@@ -1,15 +1,14 @@
 # Process this file with autoconf to produce a configure script.
 #
-# $Id$
-#
 
 # Prelude
-AC_INIT(boundfit,03.01,[ncl@astrax.fis.ucm.es])
+AC_INIT(boundfit,4.0,[cardiel@fis.ucm.es])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([config.h.in])
 AM_INIT_AUTOMAKE([-Wall -Werror foreign])
 
 # Checks for programs
+AC_REVISION($Revision$)
 AC_PROG_F77
 
 # Safety check
