@@ -98,13 +98,13 @@ C------------------------------------------------------------------------------
 C welcome message
         WRITE(*,*)
         WRITE(*,101) '***********************************************'
-        WRITE(*,101) '      Welcome to BoundFit '//
+        WRITE(*,101) '       Welcome to BoundFit '//
      +   '(version '//VERSION//')'
         WRITE(*,101) '-----------------------------------------------'
         WRITE(*,101) '> For more details see:'
-        WRITE(*,101) 'Cardiel, N., 2009, MNRAS, astro-ph/0903.2068'
+        WRITE(*,101) 'Cardiel, N., 2009, MNRAS, 396, 680-695'
         WRITE(*,101) '> and visit:'
-        WRITE(*,101) 'http://www.ucm.es/info/Astrof/software/boundfit'
+        WRITE(*,101) 'http://guaix.fis.ucm.es/~ncl/boundfit'
         WRITE(*,101) '***********************************************'
         WRITE(*,*)
 C------------------------------------------------------------------------------
