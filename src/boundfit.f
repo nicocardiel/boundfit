@@ -48,6 +48,7 @@ C variables
         INTEGER ILUP
         INTEGER NEVALMAX
         INTEGER IKNOT,NKNOTS
+        INTEGER IDUM,NPOINTSINTERVAL
         INTEGER NSEED
         INTEGER NDATA
         INTEGER I0SPL
@@ -382,8 +383,8 @@ C..............................................................................
             WRITE(CDUMMY,*) NKNOTS
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          WRITE(*,100) 'Equidistant knot arrangement (y/n)......'
-          CEQUI(1:1)=READC_B('y','yn')
+          WRITE(*,100) 'Equidistant knot arrangement (y/n/r)....'
+          CEQUI(1:1)=READC_B('y','ynr')
           IF(LECHO) WRITE(*,101) CEQUI
           IF(CEQUI.EQ.'y')THEN
             !como los datos no tienen por que venir ordenados, usamos
@@ -393,7 +394,21 @@ C..............................................................................
               XKNOT(IKNOT+1)=XMINBUFF+
      +         (XMAXBUFF-XMINBUFF)*REAL(IKNOT)/REAL(NKNOTS-1)
             END DO
+          ELSEIF(CEQUI.EQ.'r')THEN
+            !redistribuimos los knots dejando un número similar de
+            !puntos a ajustar entre cada dos knots
+            XKNOT(1)=XMINBUFF
+            XKNOT(NKNOTS)=XMAXBUFF
+            NPOINTSINTERVAL = NDATABUFF/(NKNOTS-1)
+            IF(NKNOTS.GT.2)THEN
+              DO K=2,NKNOTS-1
+                IDUM=NPOINTSINTERVAL*(K-1)
+                XKNOT(K)=(XDATA(IDUM)+XDATA(IDUM+1))/2.0
+              END DO
+            END IF
           ELSE
+            !fijamos los knots de los extremos y pedimos la insercion
+            !manual del resto
             XKNOT(1)=XMINBUFF
             WRITE(*,'(A,I2,$)') 'X-coordinate of knot #',1
             WRITE(*,100) '....................: '
