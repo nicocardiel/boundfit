@@ -48,11 +48,11 @@ C variables
         INTEGER ILUP
         INTEGER NEVALMAX
         INTEGER IKNOT,NKNOTS
-        INTEGER IDUM,NPOINTSINTERVAL
+        INTEGER IDUM
         INTEGER NSEED
         INTEGER NDATA
         INTEGER I0SPL
-        REAL XDATA(NDATAMAX)
+        REAL XDATA(NDATAMAX),XDATA_SORTED(NDATAMAX)
         REAL YDATA(NDATAMAX)
         REAL EYDATA(NDATAMAX)
         REAL XFIXED_F(NFIXEDMAX),YFIXED_F(NFIXEDMAX)
@@ -69,6 +69,7 @@ C variables
         REAL XP(NDATAMAX),YP(NDATAMAX)
         REAL XMINF,XMAXF
         REAL BX,CX,BY,CY
+        REAL FNPOINTSINTERVAL
         CHARACTER*1 COPC
         CHARACTER*1 CVERBOSE
         CHARACTER*1 CEQUI
@@ -399,11 +400,15 @@ C..............................................................................
             !puntos a ajustar entre cada dos knots
             XKNOT(1)=XMINBUFF
             XKNOT(NKNOTS)=XMAXBUFF
-            NPOINTSINTERVAL = NDATABUFF/(NKNOTS-1)
+            FNPOINTSINTERVAL = REAL(NDATABUFF)/REAL(NKNOTS-1)
+            DO I=1,NDATABUFF
+              XDATA_SORTED(I)=XDATA(I)
+            END DO
+            CALL ORDENA1F(NDATABUFF,XDATA_SORTED)
             IF(NKNOTS.GT.2)THEN
               DO K=2,NKNOTS-1
-                IDUM=NPOINTSINTERVAL*(K-1)
-                XKNOT(K)=(XDATA(IDUM)+XDATA(IDUM+1))/2.0
+                IDUM=INT(FNPOINTSINTERVAL*(K-1)+0.5)
+                XKNOT(K)=(XDATA_SORTED(IDUM)+XDATA_SORTED(IDUM+1))/2.0
               END DO
             END IF
           ELSE
