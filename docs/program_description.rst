@@ -127,3 +127,4 @@ adaptive splines                     lower boundary  :download:`script2.csh<scri
                                                      :download:`script1.sh<scripts/script4.sh>`
 ===================================  ==============  ============================================
 
+Each of the different *scriptj.csh/.sh* files (with j=1, 2, 3 or 4) reads the ascii input file :download:`example.dat<data/example.dat>` and generates an ascii output file called *scriptj.out* containing a collection of 1000 points defining the corresponding boundary data.
