@@ -8,7 +8,7 @@ Typical Installation procedure
 
 To install **BoundFit** you need to perform the following steps:
 
-1. Download the compressed distribution tar file: :dowload:`boundfit-4.0.tar.gz<data/boundfit-4.0.tar.gz>`. Decompress and extract the contents of this file.
+1. Download the compressed distribution tar file: :download:`boundfit-4.0.tar.gz<data/boundfit-4.0.tar.gz>`. Decompress and extract the contents of this file.
 2. The previous actions must have created a new subdirectory containing the distribution source tree. Move into that subdirectory, e.g.
 
 ::
