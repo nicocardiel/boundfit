@@ -1,5 +1,6 @@
-This is BoundFit, a program that perform boundary fits. This program is based
-on the method described in Cardiel (2009, MNRAS, in press).
+This is BoundFit, a Fortran 77 program that perform boundary fits. 
+This program is based on the method described in Cardiel (2009, MNRAS, 396,
+680): see http://cdsads.u-strasbg.fr/abs/2009MNRAS.396..680C
 
 This software is distributed under GPL, either version 3 of the License, or
 (at your option) any later version. See the file COPYING for details.
