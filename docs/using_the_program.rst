@@ -10,7 +10,7 @@ The execution of the program only requires to type the name of the program at th
 
     % boundfit
 
-.. code-block:: ini
+::
 
   ***********************************************
          Welcome to boundfit (version 4.0)
@@ -27,7 +27,7 @@ The first step is to indicate the name of the ASCII file containing the data for
 
 Since the program accepts wildcars, hitting ``RETURN`` without given a file name commands the program to return a list with the existing files at the current directory. In the above example, the file :download:`example.dat <data/example.dat>` contains 100 points randomly drawn from the function :math:`y(x)={1 \over x}`, assuming an error bar :math:`\sigma_{y}=10` for all the points.
 
-.. code-block:: ini
+::
 
     No. of initial rows to be skipped.......[0] ? [RETURN]
     No. of rows to be read (0=ALL)..........[0] ? [RETURN]
@@ -50,7 +50,7 @@ Since the program accepts wildcars, hitting ``RETURN`` without given a file name
 
 The program asks the user to indicate the initial number of rows to be skipped (remember that lines starting by "#" are ignored in any case) and the number of lines (with data) to be read. Hitting ``RETURN`` the program accepts the default values, as given within the square brackets. Next the user have to indicate the column numbers where :math:`x`, :math:`y` and :math:`\sigma_{y}` are going to be found in the ASCII file. Then the program reads the file, showing some basic information about the data. The program then allows to define the effective x-range in which to perform the fit (by default the whole x-range spanned by the data is used). After that, the program asks the user to indicate whether the data ranges have to be normalised before the fitting procedure. As explained in Appendix B of Cardiel2009_, this normalisation typically helps to reduce numerical errors and the number of iterations required during the numerical minimisation.
 
-.. code-block:: ini
+::
 
     (1) Simple polynomial (generic version)
     (2) Simple polynomial (simplified version)
@@ -73,7 +73,7 @@ Fitting simple polynomials (generic version)
 
 After selecting this type of fit, the users must specify all the relevant parameters.
 
-.. code-block:: ini
+::
 
     (1) Simple polynomial (generic version)
     (2) Simple polynomial (simplified version)
@@ -109,7 +109,7 @@ The following parameters have to be specified:
     
 Once all the relevant parameters have been set, **BoundFit** peforms the computation of the requested fit (upper boundary in the previous example) and outputs the fitted coefficients:
 
-.. code-block:: ini
+::
 
     ***********************************************
     * Fit results:
@@ -141,7 +141,7 @@ The final polynomial coefficients corresponding to the original data ranges are 
 
 Once the fit has been computed, **BoundFit** offers the possibility of saving the results in different ways.
 
-.. code-block:: ini
+::
 
       (1) Save last fit
       (2) Save fit predictions
@@ -157,7 +157,7 @@ Several options are available:
 
     (1) Save last fit
 
-.. code-block:: ini
+::
 
           Option..................................[0] ? 1
           Xmin.......................[9.40159708E-03] ? 
@@ -171,7 +171,7 @@ This option evaluates the fitted polynomial between *Xmin* and *Xmax* using a gi
 
     (2) Save fit predictions
 
-.. code-block:: ini
+::
 
     Option..................................[0] ? 2
     Output ASCII file name......................? predictions.dat
@@ -182,14 +182,14 @@ This option evaluates the fitted polynomial at the same x-coordinates of the inp
 
     (C) Save fit coefficients
 
-.. code-block:: ini
+::
 
     Option..................................[0] ? 3
     Output ASCII file name......................? coefficients.dat
 
 In this case the output file will contain a list with the fitted coefficients (one coefficient per line). The list is preceded by an integer number indicating the polynomial degree employed during the fit. In this particular example the contents of the file coefficients.dat is the following:
 
-.. code-block:: ini
+::
 
                5
                1   144.39651    
@@ -210,7 +210,7 @@ Fitting simple polynomials (simplified version)
 
 After selecting this type of fit, the users must specify all the relevant parameters.
 
-.. code-block:: ini
+::
 
       (1) Simple polynomial (generic version)
       (2) Simple polynomial (simplified version)
@@ -238,7 +238,7 @@ The following parameters have to be specified:
 
 Once all the relevant parameters have been set, **BoundFit** peforms the computation of the requested fit (upper boundary in the previous example) and outputs the fitted coefficients:
 
-.. code-block:: ini
+::
 
       ***********************************************
       * Initial fit results:
@@ -287,7 +287,7 @@ The final polynomial coefficients corresponding to the original data ranges are 
 
 Once the fit has been computed, **BoundFit** offers the possibility of saving the results in different ways.
 
-.. code-block:: ini
+::
 
       (1) Save last fit
       (2) Save fit predictions
@@ -302,7 +302,7 @@ Several options are available:
 
     (1) Save last fit
 
-.. code-block:: ini
+::
 
     Option..................................[0] ? 1
     Xmin.......................[9.40159708E-03] ? 
@@ -316,7 +316,7 @@ This option evaluates the fitted polynomial between Xmin and Xmax using a given 
 
     (2) Save fit predictions
 
-.. code-block:: ini
+::
 
     Option..................................[0] ? 2
     Output ASCII file name......................? predictions.dat
@@ -327,14 +327,14 @@ This option evaluates the fitted polynomial at the same x-coordinates of the inp
 
     (C) Save fit coefficients
 
-.. code-block:: ini
+::
 
     Option..................................[0] ? c
     Output ASCII file name......................? coefficients.dat
 
 In this case the output file will contain a list with the fitted coefficients (one coefficient per line). The list is preceded by an integer number indicating the polynomial degree employed during the fit. In this particular example the contents of the file coefficients.dat is the following:
 
-.. code-block:: ini
+::
 
                5
                1   143.41527    
@@ -361,7 +361,7 @@ Fitting adaptive splines
 
 Similarly to the cases previously explained for simple polynomials, after selecting the type of fit, the users must specify all the relevant parameters.
 
-.. code-block:: ini
+::
 
       (1) Simple polynomial (generic version)
       (2) Simple polynomial (simplified version)
@@ -398,7 +398,7 @@ After setting all the above parameters, **BoundFit** peforms the initial computa
 
 Running DOWNHILL (minimising all the Y-coordinates)...
 
-.. code-block:: ini
+::
 
       >>> NEVAL:    188
 
@@ -416,7 +416,7 @@ After the computation of the initial fit, **BoundFit** offers the user several p
 
 After the initial guess fit, the most suitable option is to refine all the knots. To do that one has to indicate the number of refinement processes :math:`N_{refine}`. Note that a refinement process is defined as the action of improving the location of all the knots, by choosing randomly a single knot, refining its coordinates, and repeating the process until finishing with all the knots.
 
-.. code-block:: ini
+::
 
       Option..................................[0] ? r
       Nrefine................... (0,...,1000) [1] ? 10
@@ -433,7 +433,7 @@ After the initial guess fit, the most suitable option is to refine all the knots
 
 The output shows how the different knots (6 in this example) are refined. Once the refinement processes finish, the program shows again the previous menu. If one does not need to continue with the refinements, it is possible to exit from this program block and obtain the numerical results.
 
-.. code-block:: ini
+::
 
       (1) Refine X and Y position-> 1 knot
       (2) Refine X position ------> 1 knot
@@ -479,7 +479,7 @@ The program output contains:
 
 Finally the user can save the results. The available options are the same previously explained for the case of simple polynomials. The only difference here is that in one selects option (C), the save data include both the knot locations and the spline coefficients.
 
-.. code-block:: ini
+::
 
       (1) Save last fit
       (2) Save fit predictions
@@ -489,9 +489,9 @@ Finally the user can save the results. The available options are the same previo
       Option..................................[0] ? c
       Output ASCII file name......................? splinecoeff.dat
 
-The contents of the file *splinecoeff.dat* is the following:
+The content of the file *splinecoeff.dat* is the following:
 
-.. code-block:: ini
+::
 
            6
            1  9.40159708E-03   110.06384    
