@@ -5,6 +5,6 @@ This program is based on the method described in Cardiel (2009, MNRAS, 396,
 This software is distributed under GPL, either version 3 of the License, or
 (at your option) any later version. See the file COPYING for details.
 
-Maintainer: cardiel@ucm.es
+Maintainer: Nicolás Cardiel, cardiel@ucm.es
 Webpage (documentation): http://boundfit.readthedocs.io/
 Webpage (source): https://github.com/nicocardiel/boundfit
