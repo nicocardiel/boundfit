@@ -64,7 +64,7 @@ At this point the user can choose between the two functional forms available for
     2. **Simple polynomial (simplified version)**: No additional constraints can be introduced in the fit. The coefficient :math:\alpha` is fixed to 2. The coefficient :math:`\beta` can only be either 0 (no error weighting) or 2 (error weighting). In this case the function to be minimised is the same as in ordinary least squares, and **BoundFit** performs this minimisation simply by following an iterative procedure, without the need of using the numerical method DOWNHILL.
     3. **Adaptive splines**: This option also allows the user to define additional constraints during the fit. The minimisation procedure is performed iteratively and, within each iteration, numerically using DOWNHILL.
 
-.. note::`It is important to highlight that the polynomial fits obtained with option (1) and (2) are different since the minimisation procedures in both cases are also different. The user is advised to try both fits in order to determine which is the one that best suits her/his needs. Obviously, the fit to splines will also differ from any of the two polynomial fits.`
+.. note:: It is important to highlight that the polynomial fits obtained with option (1) and (2) are different since the minimisation procedures in both cases are also different. The user is advised to try both fits in order to determine which is the one that best suits her/his needs. Obviously, the fit to splines will also differ from any of the two polynomial fits.
 
 Let's examine the three options separately.
 
