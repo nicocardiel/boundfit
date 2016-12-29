@@ -25,7 +25,7 @@ The execution of the program only requires to type the name of the program at th
 
 The first step is to indicate the name of the ASCII file containing the data for which one wants to determine the boundary fits. In this file the data must be arranged in columns. Lines starting with a "#" symbol are considered as comments and ignored.
 
-Since the program accepts wildcars, hitting ``return`` without given a file name commands the program to return a list with the existing files at the current directory. In the above example, the file `example.dat` contains 100 points randomly drawn from the function :math:`y(x)=1 \over x`, assuming an error bar :math:`\sigma_{y}=10` for all the points.
+Since the program accepts wildcars, hitting ``return`` without given a file name commands the program to return a list with the existing files at the current directory. In the above example, the file :download:`example.dat<scripts/example.dat>` contains 100 points randomly drawn from the function :math:`y(x)={1 \over x}`, assuming an error bar :math:`\sigma_{y}=10` for all the points.
 
 .. code-block:: ini
 
@@ -60,16 +60,16 @@ The program asks the user to indicate the initial number of rows to be skipped (
 
 At this point the user can choose between the two functional forms available for the boundary determination: simple polynomials or adaptive splines. In the case of simple polynomials, two different methods (*generic* and *simplified*) are available:
 
-    **Simple polynomial (generic version)**: This option allows the user to define additional constraints (e.g. fixed points or/and derivatives) during the fit (see Appendix A in C09). The :math:`\alpha` and :math:`\beta` coefficients are free parameters. The minimisation is performed numerically using DOWNHILL.
-    **Simple polynomial (simplified version)**: No additional constraints can be introduced in the fit. The coefficient :math:\alpha` is fixed to 2. The coefficient :math:\beta` can only be either 0 (no error weighting) or 2 (error weighting). In this case the function to be minimised is the same as in ordinary least squares, and **BoundFit** performs this minimisation simply by following an iterative procedure, without the need of using the numerical method DOWNHILL.
-    **Adaptive splines**: This option also allows the user to define additional constraints during the fit. The minimisation procedure is performed iteratively and, within each iteration, numerically using DOWNHILL.
+    1. **Simple polynomial (generic version)**: This option allows the user to define additional constraints (e.g. fixed points or/and derivatives) during the fit (see Appendix A in C09). The :math:`\alpha` and :math:`\beta` coefficients are free parameters. The minimisation is performed numerically using DOWNHILL.
+    2. **Simple polynomial (simplified version)**: No additional constraints can be introduced in the fit. The coefficient :math:\alpha` is fixed to 2. The coefficient :math:`\beta` can only be either 0 (no error weighting) or 2 (error weighting). In this case the function to be minimised is the same as in ordinary least squares, and **BoundFit** performs this minimisation simply by following an iterative procedure, without the need of using the numerical method DOWNHILL.
+    3. **Adaptive splines**: This option also allows the user to define additional constraints during the fit. The minimisation procedure is performed iteratively and, within each iteration, numerically using DOWNHILL.
 
-It is important to highlight that the polynomial fits obtained with option 1 and 2 are different since the minimisation procedures in both cases are also different. The user is advised to try both fits in order to determine which is the one that best suits her/his needs. Obviously, the fit to splines will also differ from any of the two polynomial fits.
+.. note::`It is important to highlight that the polynomial fits obtained with option 1 and 2 are different since the minimisation procedures in both cases are also different. The user is advised to try both fits in order to determine which is the one that best suits her/his needs. Obviously, the fit to splines will also differ from any of the two polynomial fits.`
 
 Let's examine the three options separately.
 
 Fitting simple polynomials (generic version)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+---------------------------------------------
 
 After selecting this type of fit, the users must specify all the relevant parameters.
 
@@ -103,8 +103,8 @@ The following parameters have to be specified:
     * Boundary side: 1 for upper boundary and 2 for lower boundary.
     * YRMSTOL for DOWNHILL: stopping criterium for the DOWNHILL simplex method. The minimisation procedure is halted when the r.m.s. of the values of the function to be minimised evaluated at all the vertices of the simplex is less than YRMSTOL.
     * Nmaxiter: maximum number of iterations allowed in DOWNHILL. Note that this is just an upper limit. However, if DOWNHILL finds a solution for the sought coefficients that satisfy the previous YRMSTOL criterum, the minimisation procedure is halted and the effective number of iterations can be much less than Nmaxiter. This parameter is used to avoid DOWNHILL for entering into an infinity loop.
-    Finally, **BoundFit** can proceed with the minimisation in an incremental way. This means that, for example, if the user is interested in fitting a polynomial of nth degree, the program first determines the polynomial of degree 0, then the polynomial of degree 1,..., and finally the polynomial of degree n. In each of these steps, the derived coefficients are used as an initial guess for the numerical minimisation of the following step. Note that the use of this option leads to different polynomial fits. The user must check both options in order to identify which one fits her/his needs.
-
+    * Finally, **BoundFit** can proceed with the minimisation in an incremental way. This means that, for example, if the user is interested in fitting a polynomial of nth degree, the program first determines the polynomial of degree 0, then the polynomial of degree 1,..., and finally the polynomial of degree n. In each of these steps, the derived coefficients are used as an initial guess for the numerical minimisation of the following step. :note:`Note that the use of this option leads to different polynomial fits. The user must check both options in order to identify which one fits her/his needs.`
+    
 Once all the relevant parameters have been set, **BoundFit** peforms the computation of the requested fit (upper boundary in the previous example) and outputs the fitted coefficients:
 
 .. code-block:: ini
@@ -131,11 +131,11 @@ Once all the relevant parameters have been set, **BoundFit** peforms the computa
     >>> a(05)=  -1646387.4    
     -----------------------------------------------
 
-First the program shows the effective number of iterations NEVAL employed by DOWNHILL during the minimisation procedure. The resulting polynomial coefficients, corresponding to the normalized data ranges, are displayed as A(00), A(01),..., A(05).
+First the program shows the effective number of iterations NEVAL employed by DOWNHILL during the minimisation procedure. The resulting polynomial coefficients, corresponding to the normalized data ranges, are displayed as *A(00)*, *A(01)*,..., *A(05)*.
 
 The values of *bx*, *cx*, *by* and *cy* correspond to the coefficients used for the normalization of the data ranges; see Appendix B of C09.
 
-The final polynomial coefficients corresponding to the original data ranges are given as a(00), a(01),..., a(05).
+The final polynomial coefficients corresponding to the original data ranges are given as *a(00)*, *a(01)*,..., *a(05)*.
 
 Once the fit has been computed, **BoundFit** offers the possibility of saving the results in different ways.
 
@@ -148,9 +148,12 @@ Once the fit has been computed, **BoundFit** offers the possibility of saving th
       (0) EXIT
       Option..................................[0] ? 
 
-      Several options are available:
 
-          (1) Save last fit
+Several options are available:
+
+(1) Save last fit
+
+.. code-block:: ini
 
           Option..................................[0] ? 1
           Xmin.......................[9.40159708E-03] ? 
@@ -160,18 +163,18 @@ Once the fit has been computed, **BoundFit** offers the possibility of saving th
 
 This option evaluates the fitted polynomial between *Xmin* and *Xmax* using a given number of points. The result is saved in the selected ASCII file.
 
-.. code-block:: ini
+(2) Save fit predictions
 
-    (2) Save fit predictions
+.. code-block:: ini
 
     Option..................................[0] ? 2
     Output ASCII file name......................? predictions.dat
 
     This option evaluates the fitted polynomial at the same x-coordinates of the input data, saving the result in the selected ASCII file.
-    
-.. code-block:: ini
 
-    (C) Save fit coefficients
+(C) Save fit coefficients
+
+.. code-block:: ini
 
     Option..................................[0] ? 3
     Output ASCII file name......................? coefficients.dat
@@ -188,12 +191,12 @@ This option evaluates the fitted polynomial between *Xmin* and *Xmax* using a gi
                5   1371004.8    
                6  -1646387.4    
 
-    (N) New fit
+(N) New fit
 
 This option returns the flow of the program to the menu offering the possibility to choose between a fit to a simple polynomial or to adaptive splines.
 
 Fitting simple polynomials (simplified version)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------------
 
 After selecting this type of fit, the users must specify all the relevant parameters.
 
@@ -268,9 +271,9 @@ Once all the relevant parameters have been set, **BoundFit** peforms the computa
 
 First the program shows an initial ordinary least-squares fit (with the coefficients corresponding to the normalised data ranges). Then the iterative procedure starts and for each step, the iteration number (NEVAL), number of points in the fit (NFIT) and number of points inside (NIN) and outside (NOUT) of the temporary boundary are displayed.
 
-Next, the section "Final fit results:" displays the final number of iterations and the polynomial coefficients (still corresponding to the normalised data ranges). Immediately follows the transformation coefficients bx, cx, by, cy that are needed to recover the final polynomial coefficients in the original data ranges (see Appendix B of C09).
+Next, the section "Final fit results:" displays the final number of iterations and the polynomial coefficients (still corresponding to the normalised data ranges). Immediately follows the transformation coefficients *bx*, *cx*, *by*, *cy* that are needed to recover the final polynomial coefficients in the original data ranges (see Appendix B of C09).
 
-The final polynomial coefficients corresponding to the original data ranges are given as a(00), a(01),..., a(05).
+The final polynomial coefficients corresponding to the original data ranges are given as *a(00)*, *a(01)*,..., *a(05)*.
 
 Once the fit has been computed, **BoundFit** offers the possibility of saving the results in different ways.
 
@@ -285,9 +288,9 @@ Once the fit has been computed, **BoundFit** offers the possibility of saving th
 
 Several options are available:
 
-.. code-block:: ini
+(1) Save last fit
 
-    (1) Save last fit
+.. code-block:: ini
 
     Option..................................[0] ? 1
     Xmin.......................[9.40159708E-03] ? 
@@ -297,18 +300,18 @@ Several options are available:
 
 This option evaluates the fitted polynomial between Xmin and Xmax using a given number of points. The result is saved in the selected ASCII file.
 
-.. code-block:: ini
+(2) Save fit predictions
 
-    (2) Save fit predictions
+.. code-block:: ini
 
     Option..................................[0] ? 2
     Output ASCII file name......................? predictions.dat
 
 This option evaluates the fitted polynomial at the same x-coordinates of the input data, saving the result in the selected ASCII file.
 
-.. code-block:: ini
+(C) Save fit coefficients
 
-    (C) Save fit coefficients
+.. code-block:: ini
 
     Option..................................[0] ? c
     Output ASCII file name......................? coefficients.dat
@@ -325,19 +328,16 @@ In this case the output file will contain a list with the fitted coefficients (o
                5   1392110.4    
                6  -1706903.3    
 
-.. code-block:: ini
-
-    (N) New fit
+(N) New fit
 
 This option returns the flow of the program to the menu offering the possibility to choose between a fit to a simple polynomial or to adaptive splines.
 
-.. code-block:: ini
+(0) EXIT
 
-    (0) EXIT
-    Stop the execution of the program.
+Stop the execution of the program.
 
 Fitting adaptive splines
-^^^^^^^^^^^^^^^^^^^^^^^^^
+-------------------------
 
 Similarly to the cases previously explained for simple polynomials, after selecting the type of fit, the users must specify all the relevant parameters.
 
@@ -370,13 +370,10 @@ Similarly to the cases previously explained for simple polynomials, after select
 
 Most of the parameters are identical to the ones previously described for the case of boundary fitting to simple polynomials and they are not going to be explained again here. There are, however, a few important differences:
 
-Instead of a polynomial degree the user must indicate the total number of knots Nknots.
-
-The initial knot arrangement must be set. The default option is to use an equidistant knot pattern, although the program allows the user to specify particular values for the initial X-coordinates of the inner knots (as shown in the above example) or to use an automatic arrangement in order to leave a similar number of points in each interval between consecutive knots.
-
+* Instead of a polynomial degree the user must indicate the total number of knots Nknots.
+* The initial knot arrangement must be set. The default option is to use an equidistant knot pattern, although the program allows the user to specify particular values for the initial X-coordinates of the inner knots (as shown in the above example) or to use an automatic arrangement in order to leave a similar number of points in each interval between consecutive knots.
 The initial arrangement can be refined, and this task is performed by improving the coordinates of each knot individually, one at a time chosen randomly. In order to be able to reproduce the random selection of knots when repeating the fit several times with the same input parameters, the user can specify the seed for the random number generator. Using a negative value indicates that the user wants the program to make a previous call to the system function srand(time()) in order to get a random seed from the system's clock. Thus, using a positive value for NSEED allows the user to reproduce always the same results.
-
-The boundary fit using adaptive splines performs a more complex minimisation process than in the case of simple polynomials. During the development of the code the program was written to output in the screen intermediate calculations. Since this information can be overwhelming for most users, by default the program assumes that the expected verbosity must be kept to a minimum.
+* The boundary fit using adaptive splines performs a more complex minimisation process than in the case of simple polynomials. During the development of the code the program was written to output in the screen intermediate calculations. Since this information can be overwhelming for most users, by default the program assumes that the expected verbosity must be kept to a minimum.
 
 After setting all the above parameters, BoundFit peforms the initial computation of a guess fit by using an equidistant pattern of knots. In this computation the y-coordinates of all the knots are refined at once using DOWNHILL.
 
@@ -457,9 +454,9 @@ The output shows how the different knots (6 in this example) are refined. Once t
 
 The program output contains:
 
-    * The values of bx, cx, by and cy correspond to the coefficients used for the normalization of the data ranges; see Appendix B of C09.
-    * The final (x,y) knot coordinates (from 1 to Nknots).
-    * The coefficients of the splines (from 1 to Nknots-1), which follow the notation used in Eq. (5) of C09. Note that the coefficients s_0 are not displayed since s0(k)= yknot(k).
+    * The values of *bx*, *cx*, *by* and *cy* correspond to the coefficients used for the normalization of the data ranges; see Appendix B of C09.
+    * The final *(x,y)* knot coordinates (from 1 to :math:`N_{knots}`).
+    * The coefficients of the splines (from 1 to :math:`N_{knots}-1`), which follow the notation used in Eq. (5) of C09. Note that the coefficients *s_0* are not displayed since :math:`s0(k)= y_{knot}(k)`.
 
 Finally the user can save the results. The available options are the same previously explained for the case of simple polynomials. The only difference here is that in one selects option C, the save data include both the knot locations and the spline coefficients.
 
@@ -490,12 +487,12 @@ The contents of the file *splinecoeff.dat* is the following:
            4  -30860.875       6284.6338      -278.68597    
            5   89384.563      -6722.4756      -340.19922    
 
-First, an integer number indicates the number of knots employed during the boundary fit. After that number the file contains the (x,y) coordinates of all the knots, from 1 to Nknots. And finally the s_3(k), s_2(k), s_1(k) coefficients from k=1,...,Nknots-1 (note the order!).
+First, an integer number indicates the number of knots employed during the boundary fit. After that number the file contains the *(x,y)* coordinates of all the knots, from 1 to :math:`N_{knots}`. And finally the *s_3(k)*, *s_2(k)*, *s_1(k)* coefficients from :math:`k=1,...,Nknots-1` (note the order!).
 
 Running the program within shell scripts
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+-----------------------------------------
 
-A way to run the **BoundFit** with more flexibility is to execute the program with the help of a shell script. For example, the script *boundfit_pol.tcsh* allows the users to fit a simple polynomial to a given data file with a single command line like
+A way to run the **BoundFit** with more flexibility is to execute the program with the help of a shell script. For example, the script :download:`boundfit_pol.tcsh<scripts/boundfit_pol.tcsh>` allows the users to fit a simple polynomial to a given data file with a single command line like
 
 ::
 
