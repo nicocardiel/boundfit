@@ -4,31 +4,31 @@ Installation
 Typical Installation procedure
 -------------------------------
 
-**BoundFit** is written in Fortran 77 and it has been developed in a linux
+**boundfit** is written in Fortran 77 and it has been developed in a linux
 machine. The installation procedure should be trivial for most users. The only
 requirement is to have a relatively recent linux distribution, including a
 fortran compiler (e.g. ``g77`` or ``gfortran``) and the GNU ``autotools``.
 
-To install **BoundFit** you need to perform the following steps:
+To install **boundfit** you need to perform the following steps:
 
-1. Download the latest version of the code from github:
+1.- Download the latest version of the code from github:
 
 ::
 
-    $ git clone https://github.com/nicocardiel/boundfit
+   $ git clone https://github.com/nicocardiel/boundfit
     
-3. Install the program by executing:
+2.- Install the program by executing:
 
 ::
 
-    $ cd boundfit
-    $ ./configure
-    $ make
+   $ cd boundfit
+   $ ./configure
+   $ make
 
 .. note:: Mac users can easily indicate the Fortran compiler using
-   ``./configure F77=gfortran-mp-5``.
+      ``./configure F77=gfortran-mp-5``.
 
-4. At this point a compiled version of the program must be available in the
+3.- At this point a compiled version of the program must be available in the
 subdirectory `src`. It is usual to finish the installation by placing this
 executable file in a common place, like `/usr/local/bin`, which traditionally
 is included in the searching path for executable files in any user account.
@@ -73,7 +73,7 @@ Refined installation procedure
 
 By default, some "magic" numbers (Fortran PARAMETERs) are pre-defined in the
 code, but can be adequately modified at installation time. Note that
-**BoundFit** reads the data to be fitted from an external ASCII file.
+**boundfit** reads the data to be fitted from an external ASCII file.
 
     **NDATAMAX**: Maximum number of points to be fitted (default 100000 points).
     

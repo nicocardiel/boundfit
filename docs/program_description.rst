@@ -1,7 +1,7 @@
 Program description
 ===================
 
-**BoundFit** determines upper and lower boundaries to a given data set using
+**boundfit** determines upper and lower boundaries to a given data set using
 the generalised least-squares method described in Data boundary fitting using a
 generalised least-squares method (`Cardiel 2009, MNRAS, 396, 680
 <http://cdsads.u-strasbg.fr/abs/2009MNRAS.396..680C>`_).
@@ -26,7 +26,7 @@ The key ideas behind this method are the following:
 - The minimisation of the cost function can be easily carried out using the
   popular DOWNHILL simplex method. In principle this allows the use of any
   complutable function as the analytical expression for the boundary fits.
-  **BoundFit** incorporates the use of simple polynomials and adaptive splines
+  **boundfit** incorporates the use of simple polynomials and adaptive splines
   as the two possible functional forms for the computed boundaries.
 
 In the general case, given a set of :math:`N` data points :math:`(x_i,y_i)`,

@@ -8,7 +8,7 @@
 Welcome to boundfit's documentation!
 ====================================
 
-**BoundFit** determines upper and lower boundaries to a given data set using
+**boundfit** determines upper and lower boundaries to a given data set using
 the generalised least-squares method described in Data boundary fitting using a
 generalised least-squares method (`Cardiel 2009, MNRAS, 396, 680
 <http://cdsads.u-strasbg.fr/abs/2009MNRAS.396..680C>`_).
