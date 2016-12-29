@@ -106,7 +106,7 @@ C welcome message
         WRITE(*,101) '> For more details see:'
         WRITE(*,101) 'Cardiel, N., 2009, MNRAS, 396, 680-695'
         WRITE(*,101) '> and visit:'
-        WRITE(*,101) 'http://guaix.fis.ucm.es/~ncl/boundfit'
+        WRITE(*,101) 'http://boundfit.readthedocs.io/'
         WRITE(*,101) '***********************************************'
         WRITE(*,*)
 C------------------------------------------------------------------------------

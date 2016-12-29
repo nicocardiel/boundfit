@@ -13,3 +13,4 @@ src/nknotsmax.inc
 src/version.inc
 stamp-h1
 src/*.o
+src/boundfit
