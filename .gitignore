@@ -1,0 +1,15 @@
+Makefile
+autom4te.cache/
+config.h
+config.log
+config.status
+src/Makefile
+src/boundfit.dSYM/
+src/lenlinea.inc
+src/ndatamax.inc
+src/ndegmax.inc
+src/nfixedmax.inc
+src/nknotsmax.inc
+src/version.inc
+stamp-h1
+src/*.o
