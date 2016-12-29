@@ -15,4 +15,4 @@ stamp-h1
 src/*.o
 src/boundfit
 
-docs/_build
+docs/_build/*

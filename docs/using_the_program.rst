@@ -8,7 +8,7 @@ The execution of the program only requires to type the name of the program at th
 
 ::
 
-    % boundfit
+    $ boundfit
 
 ::
 
@@ -515,7 +515,7 @@ A way to run the **BoundFit** with more flexibility is to execute the program wi
 
 ::
 
-  % ./boundfit_pol.tcsh example.dat 5 1000 2 0 0 1 1000 lastfit.dat
+  $ ./boundfit_pol.tcsh example.dat 5 1000 2 0 0 1 1000 lastfit.dat
   
 The comment lines in this script explain which values are expected in the command line and in which order.
 
@@ -523,7 +523,7 @@ For the above script to work properly, the script file must have execute permiss
 
 ::
 
-  % chmod u+x boundfit_pol.tcsh
+  $ chmod u+x boundfit_pol.tcsh
   
 Note that the script takes the different parameters from the command line and passes them to the program at execution time. The order in which the parameters are written cannot be changed (unless the script file is modified).
 
