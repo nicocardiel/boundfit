@@ -555,6 +555,8 @@ Running DOWNHILL (minimising all the Y-coordinates)...
 
 ::
 
+      ***********************************************
+
       >>> NEVAL:    188
 
       (1) Refine X and Y position-> 1 knot
@@ -691,7 +693,8 @@ Running the program within shell scripts
 
 A way to run the **boundfit** with more flexibility is to execute the program
 with the help of a shell script. For example, the script
-:download:`boundfit_pol.tcsh<scripts/boundfit_pol.tcsh>` allows the users to
+:download:`boundfit_pol.tcsh<scripts/boundfit_pol.tcsh>` (or
+:download:`boundfit_pol.sh<scripts/boundfit_pol.sh>`) allows the users to
 fit a simple polynomial to a given data file with a single command line like
 
 ::
