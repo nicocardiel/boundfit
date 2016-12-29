@@ -4,7 +4,7 @@ Program description
 **BoundFit** determines upper and lower boundaries to a given data set using
 the generalised least-squares method described in Data boundary fitting using a
 generalised least-squares method (`Cardiel 2009, MNRAS, 396, 680
-<http://cdsads.u-strasbg.fr/abs/2009MNRAS.396..680C>`_; hereafter **C09**).
+<http://cdsads.u-strasbg.fr/abs/2009MNRAS.396..680C>`_).
 
 The key ideas behind this method are the following:
 
@@ -98,12 +98,12 @@ and :math:`\xi`, which roles are basically the following:
 A much more detailed description of this method, and the parameters
 (:math:`\alpha`, :math:`\beta`, :math:`\tau` and :math:`\xi`) that can be tuned
 to modify the behaviour of the fitting procedure depending on the nature of the
-data being fitted, is given in **C09**.
+data being fitted, is given in Cardiel2009_.
 
 Example
 -------
 
-The fits displayed in the following figure (Figure 6 from **C09**) have been
+The fits displayed in the following figure (Figure 6 from Cardiel2009_) have been
 computed using option 1 "Simple polynomial (generic version)" and option 3
 "Adaptive splines", which are explained below. The data points are those given
 in the file :download:`example.dat<data/example.dat>`.
@@ -120,11 +120,13 @@ type of fit                          boundary        script
 simple polynomial (generic version)  upper boundary  :download:`script1.csh<scripts/script1.csh>`
                                                      :download:`script1.sh<scripts/script1.sh>`
 simple polynomial (generic version)  lower boundary  :download:`script2.csh<scripts/script2.csh>`
-                                                     :download:`script1.sh<scripts/script2.sh>`
-adaptive splines                     upper boundary  :download:`script2.csh<scripts/script3.csh>`
-                                                     :download:`script1.sh<scripts/script3.sh>`
-adaptive splines                     lower boundary  :download:`script2.csh<scripts/script4.csh>`
-                                                     :download:`script1.sh<scripts/script4.sh>`
+                                                     :download:`script2.sh<scripts/script2.sh>`
+adaptive splines                     upper boundary  :download:`script3.csh<scripts/script3.csh>`
+                                                     :download:`script3.sh<scripts/script3.sh>`
+adaptive splines                     lower boundary  :download:`script4.csh<scripts/script4.csh>`
+                                                     :download:`script4.sh<scripts/script4.sh>`
 ===================================  ==============  ============================================
 
 Each of the different *scriptj.csh/.sh* files (with j=1, 2, 3 or 4) reads the ascii input file :download:`example.dat<data/example.dat>` and generates an ascii output file called *scriptj.out* containing a collection of 1000 points defining the corresponding boundary data.
+
+.. _Cardiel2009: http://cdsads.u-strasbg.fr/abs/2009MNRAS.396..680C

@@ -1,5 +1,8 @@
 #!/bin/bash
-if [ -e script1.out ] \rm -f script1.out
+if [ -e script1.out ] 
+then
+  \rm -f script1.out
+fi
 touch .running_BoundFit
 boundfit << end_boundfit
 example.dat
