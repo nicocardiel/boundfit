@@ -22,10 +22,11 @@ To install **boundfit** you need to perform the following steps:
 ::
 
    $ cd boundfit
+   $ autoreconf -s -i -f
    $ ./configure
    $ make
 
-.. note:: Mac users can easily indicate the Fortran compiler using
+.. note:: Mac users can easily indicate a particular Fortran compiler using
       ``./configure F77=gfortran-mp-5``.
 
 3.- At this point a compiled version of the program must be available in the
