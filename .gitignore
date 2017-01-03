@@ -3,6 +3,9 @@ autom4te.cache/
 config.h
 config.log
 config.status
+configure
+install-sh
+missing
 src/Makefile
 src/boundfit.dSYM/
 src/lenlinea.inc
@@ -14,5 +17,7 @@ src/version.inc
 stamp-h1
 src/*.o
 src/boundfit
+
+*~
 
 docs/_build/*
