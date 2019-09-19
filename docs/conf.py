@@ -48,7 +48,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'boundfit'
-copyright = u'2016, Nicolás Cardiel'
+copyright = u'2008-2019, Universidad Complutense de Madrid'
 author = u'Nicolás Cardiel'
 
 # The version info for the project you're documenting, acts as replacement for

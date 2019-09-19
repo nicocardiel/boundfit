@@ -9,6 +9,7 @@ config.status
 configure
 install-sh
 missing
+.DS_Store
 src/Makefile
 src/Makefile.in
 src/boundfit.dSYM/
@@ -21,6 +22,7 @@ src/version.inc
 stamp-h1
 src/*.o
 src/boundfit
+src/.DS_Store
 
 *~
 

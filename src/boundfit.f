@@ -1,5 +1,6 @@
 C------------------------------------------------------------------------------
-C Copyright 2009 Nicolas Cardiel
+C Copyright 2008-2019, Universidad Complutense de Madrid
+C Author: Nicolas Cardiel
 C
 C This file is part of BoundFit.
 C 
