@@ -8,19 +8,30 @@
 Welcome to boundfit's documentation!
 ====================================
 
-**boundfit** determines upper and lower boundaries to a given data set using
+**Boundfit** determines upper and lower boundaries to a given data set using
 the generalised least-squares method described in Data boundary fitting using a
 generalised least-squares method (`Cardiel 2009, MNRAS, 396, 680
 <http://cdsads.u-strasbg.fr/abs/2009MNRAS.396..680C>`_).
 
-.. image:: images/example.png
+.. figure:: images/example.png
+   :width: 70%
+   :align: center
+
+   Comparison between different functional forms for the boundary fitting.
+
+
+.. figure:: images/plots_miles.png
    :width: 100%
    :align: center
+
+   Examples of pseudo-continuum fits using adaptive splines.
+
+Document index:
 
 .. toctree::
    :maxdepth: 2
 
-   program_description
-   installation
-   using_the_program
    license_agreement
+   installation
+   program_description
+   using_the_program
