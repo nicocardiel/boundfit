@@ -24,6 +24,10 @@ src/*.o
 src/boundfit
 src/.DS_Store
 
+python/.ipynb_checkpoints
+python/__pycache__
+python/example*.bft
+python/example*.log
 *~
 
 docs/_build/*
