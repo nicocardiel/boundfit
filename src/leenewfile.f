@@ -307,8 +307,9 @@ C------------------------------------------------------------------------------
 C------------------------------------------------------------------------------
 C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
         WRITE(*,*)
-        WRITE(*,100) 'Normalise data ranges to [-1,+1]  (y/n) '
-        CRENORM(1:1)=READC_B('y','yn')
+        WRITE(*,100) 'Normalise to [-1,+1] (y/n) or '//
+     +   '(r)escale data ranges'
+        CRENORM(1:1)=READC_B('y','ynr')
         IF(LECHO) WRITE(*,101) CRENORM
         IF(CRENORM.EQ.'y')THEN
           IF(XMINBUFF.EQ.XMAXBUFF)THEN
@@ -331,19 +332,45 @@ C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
             BY=2./(YMAXBUFF-YMINBUFF)
             CY=(YMINBUFF+YMAXBUFF)/(YMAXBUFF-YMINBUFF)
           END IF
-          DO I=1,NDATABUFF
-            XDATA(I)=BX*XDATA(I)-CX
-            YDATA(I)=BY*YDATA(I)-CY
-            EYDATA(I)=BY*EYDATA(I)
-          END DO
-          XMINBUFF=-1.0
-          XMAXBUFF=+1.0
+        ELSEIF(CRENORM.EQ.'r')THEN
+          WRITE(*,100) 'Multiplicative factor for X data '
+          BX=READF_B('1.0')
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) BX
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
+          CX=0.0
+          WRITE(*,100) 'Multiplicative factor for Y data '
+          BY=READF_B('1.0')
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) BY
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
+          CY=0.0
         ELSE
           BX=1.0
           CX=0.0
           BY=1.0
           CY=0.0
         END IF
+        WRITE(*,100)'>>> bx, cx: '
+        WRITE(*,*) BX,CX
+        WRITE(*,100)'>>> by, cy: '
+        WRITE(*,*) BY,CY
+        DO I=1,NDATABUFF
+          XDATA(I)=BX*XDATA(I)-CX
+          YDATA(I)=BY*YDATA(I)-CY
+          EYDATA(I)=BY*EYDATA(I)
+        END DO
+        CALL FINDMML(NDATABUFF,1,NDATABUFF,XDATA,XMINBUFF,XMAXBUFF)
+        CALL FINDMML(NDATABUFF,1,NDATABUFF,YDATA,YMINBUFF,YMAXBUFF)
+        CALL FINDMML(NDATABUFF,1,NDATABUFF,EYDATA,EYMINBUFF,EYMAXBUFF)
+        WRITE(*,100) '>>> Xmin, Xmax..............................: '
+        WRITE(*,*) XMINBUFF,XMAXBUFF
+        WRITE(*,100) '>>> Ymin, Ymax..............................: '
+        WRITE(*,*) YMINBUFF,YMAXBUFF
+        WRITE(*,100) '>>> EYmin, EYmax............................: '
+        WRITE(*,*) EYMINBUFF,EYMAXBUFF
 C------------------------------------------------------------------------------
         RETURN
 C..............................................................................
