@@ -38,10 +38,11 @@ C variables
         INTEGER ISYSTEM
         INTEGER NSKIP,NDATA
         INTEGER NX,NY,NEY
-        INTEGER NDATABUFF,NDATABUFF_
+        INTEGER NDATABUFF,NDATABUFF_INITIAL
         INTEGER ISTATUSEXTRAE
         INTEGER NCOMMENTS
         REAL XDATA(NDATAMAX)
+        REAL XDATA_INITIAL(NDATAMAX)
         REAL YDATA(NDATAMAX)
         REAL EYDATA(NDATAMAX)
         REAL FEXTRAE
@@ -60,8 +61,9 @@ C variables
         LOGICAL LECHO
 C common blocks
         COMMON/BLKLECHO/LECHO
-        COMMON/BLKNDATABUFF/NDATABUFF
+        COMMON/BLKNDATABUFF/NDATABUFF,NDATABUFF_INITIAL
         COMMON/BLKXYDATA/XDATA,YDATA,EYDATA
+        COMMON/BLKXDATA_INITIAL/XDATA_INITIAL
         COMMON/BLKMINMAXBUFF/XMINBUFF,XMAXBUFF
         COMMON/BLKNORM/BX,CX,BY,CY
 C------------------------------------------------------------------------------
@@ -234,6 +236,11 @@ C..............................................................................
             WRITE(*,101) 'File read and closed!'
           END IF
         END IF
+C conservamos valores iniciales para la prediccion final
+        NDATABUFF_INITIAL=NDATABUFF
+        DO I=1,NDATABUFF
+          XDATA_INITIAL(I)=XDATA(I)
+        END DO
 C mostramos datos basicos sobre los puntos leidos
         WRITE(*,*)
         WRITE(*,100) '>>> No. of rows with comments (unread)......: '
@@ -282,9 +289,8 @@ C------------------------------------------------------------------------------
             WRITE(CDUMMY,*) XMAXFIT
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
           END IF
-          NDATABUFF_=NDATABUFF
           NDATABUFF=0
-          DO I=1,NDATABUFF_
+          DO I=1,NDATABUFF_INITIAL
             IF((XDATA(I).GE.XMINFIT).AND.(XDATA(I).LE.XMAXFIT))THEN
               NDATABUFF=NDATABUFF+1
               XDATA(NDATABUFF)=XDATA(I)

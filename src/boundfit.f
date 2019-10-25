@@ -43,7 +43,7 @@ C variables
         INTEGER L,L1,L2
         INTEGER IOPC
         INTEGER ISTATUS
-        INTEGER NDATABUFF
+        INTEGER NDATABUFF,NDATABUFF_INITIAL
         INTEGER NTERMS
         INTEGER NFIXED_F,NFIXED_D
         INTEGER ILUP
@@ -54,6 +54,7 @@ C variables
         INTEGER NDATA
         INTEGER I0SPL
         REAL XDATA(NDATAMAX),XDATA_SORTED(NDATAMAX)
+        REAL XDATA_INITIAL(NDATAMAX)
         REAL YDATA(NDATAMAX)
         REAL EYDATA(NDATAMAX)
         REAL XFIXED_F(NFIXEDMAX),YFIXED_F(NFIXEDMAX)
@@ -87,8 +88,9 @@ C variables
 C common blocks
         COMMON/BLKLECHO/LECHO
         COMMON/BLKCVERBOSE/CVERBOSE
-        COMMON/BLKNDATABUFF/NDATABUFF
+        COMMON/BLKNDATABUFF/NDATABUFF,NDATABUFF_INITIAL
         COMMON/BLKXYDATA/XDATA,YDATA,EYDATA
+        COMMON/BLKXDATA_INITIAL/XDATA_INITIAL
         COMMON/BLKMINMAXBUFF/XMINBUFF,XMAXBUFF
         COMMON/BLKNORM/BX,CX,BY,CY
         COMMON/BLKOUT_NDATA/NDATA
@@ -554,12 +556,13 @@ C save result
         DO WHILE(COPC.NE.'0')
           WRITE(*,*)
           WRITE(*,101) '(1) Save last fit'
-          WRITE(*,101) '(2) Save fit predictions'
+          WRITE(*,101) '(2) Save fit predictions (fitted range)'
+          WRITE(*,101) '(3) Save fit predictions (original range)'
           WRITE(*,101) '(C) Save fit coefficients'
           WRITE(*,101) '(N) New fit'
           WRITE(*,101) '(0) EXIT'
           WRITE(*,100) 'Option..................................'
-          COPC(1:1)=READC_B('0','012cCnN')
+          COPC(1:1)=READC_B('0','0123cCnN')
           IF(LECHO) WRITE(*,101) COPC
           IF((COPC.EQ.'n').OR.(COPC.EQ.'N'))THEN
             GOTO 10
@@ -628,6 +631,11 @@ C save result
               NDATA=NDATABUFF
               DO I=1,NDATA
                 XP(I)=(XDATA(I)+CX)/BX
+              END DO
+            ELSEIF(COPC.EQ.'3')THEN
+              NDATA=NDATABUFF_INITIAL
+              DO I=1,NDATA
+                XP(I)=XDATA_INITIAL(I)  !in this case do not de-normalise data
               END DO
             ELSE
               WRITE(*,101) 'COPC='//COPC
