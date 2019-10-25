@@ -163,6 +163,11 @@ C------------------------------------------------------------------------------
           GOTO 10
         END IF
         I=I+1
+        IF(I.GT.NDATAMAX)THEN
+          WRITE(*,101) 'FATAL ERROR: data number is too large.'
+          WRITE(*,101) 'You must modify the parameter NDATAMAX.'
+          STOP
+        END IF
 C leemos variable X
         XDATA(I)=FEXTRAE(CLINEA,NX,ISTATUSEXTRAE)
         IF(ISTATUSEXTRAE.EQ.0) GOTO 903
