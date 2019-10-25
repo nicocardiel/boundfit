@@ -7,6 +7,7 @@ def exec_boundfit(infile, filemode='ascii',
                   xcol=1, ycol=2,
                   fittype=None,
                   xmin=None, xmax=None,
+                  rescaling=None, xfactor=None, yfactor=None,
                   poldeg=2, nknots=None, xi=1000, alfa=2.0, beta=0.0, tau=0.0, 
                   side=1, yrmstol=1E-5, nmaxiter=1000, nrefine=None,
                   sampling=1000,
@@ -35,6 +36,16 @@ def exec_boundfit(infile, filemode='ascii',
     xmax : float
         Maximum X to be employed. If None, use maximum value
         in data set.
+    rescaling : string
+        If not None, it must be either 'normalise' or 'factors'.
+        The option 'normalise' indicates that the data ranges
+        are normalised to [-1,1]. The option 'factors' allows the
+        user to apply a different multiplicative factor to each
+        range.
+    xfactor : float
+        Multiplicative factor for X data when rescaling='factors'.
+    yfactor : float
+        Multiplicative factor for Y data when rescaling='factors'.
     poldeg : integer
         Polynomial degree for fittype=1 or 2.
     nknots : integer
@@ -61,10 +72,13 @@ def exec_boundfit(infile, filemode='ascii',
     outbasefilename : str
         Output file name to store fit results. If None, the base name
         from infile is used, appending the following suffixes:
-        - _lfit.bfg: fit computed from 'xmin' to 'xmax' using 'sampling'
-          points.
-        - _pred.bfg: predictions for each input data point
-        - _coef.bfg: fit coefficients
+        - _linfit.bfg: fit computed from 'xmin' to 'xmax' using
+          'sampling' points.
+        - _predf.bfg: predictions for each data point within the
+          fitted range
+        - _predo.bfg: predictions for each data point in the
+          original data set (including points outside fitted range)
+        - _coeff.bfg: fit coefficients
         - .log: execution log containing the terminal output
         
     """
@@ -76,6 +90,11 @@ def exec_boundfit(infile, filemode='ascii',
         raise ValueError('You must specify a value for fittype')
     if filemode == 'fits':
         raise ValueError("mode='fits' not implemented yet")
+    if rescaling == 'rescale':
+        if xfactor is None:
+            raise ValueError('You must specify a value for xfactor')
+        if yfactor is None:
+            raise ValueError('You must specify a value for yfactor')
     if fittype == 3:
         if nknots is None:
             raise ValueError('You must specify a value for nknots')
@@ -85,9 +104,10 @@ def exec_boundfit(infile, filemode='ascii',
     # determine output file names
     if outbasefilename is None:
         outbasefilename = Path(infile).stem
-    outfile1 = outbasefilename + '_lfit.bft'
-    outfile2 = outbasefilename + '_pred.bft'
-    outfile3 = outbasefilename + '_coef.bft'
+    outfile1 = outbasefilename + '_linfit.bft'
+    outfile2 = outbasefilename + '_predf.bft'
+    outfile3 = outbasefilename + '_predo.bft'
+    outfile4 = outbasefilename + '_coeff.bft'
     logfile = outbasefilename + '.log'
     
     # remove output files if they already exists
@@ -130,8 +150,16 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite('')
     else:
         pwrite(xmax)
-        
-    pwrite('y')      # Normalise data ranges to [-1,+1]?
+
+    # Normalise data ranges to [-1,+1] (y/n) or (r)escale
+    if rescaling == None:
+        pwrite('n')
+    elif rescaling == 'normalise':
+        pwrite('y')
+    elif rescaling == 'factors':
+        pwrite('r')
+        pwrite(xfactor)   # Multiplicative factor for X data
+        pwrite(yfactor)   # Multiplicative factor for Y data
 
     # Select type of fit:
     # (1) Simple polynomial (generic version)
@@ -175,12 +203,13 @@ def exec_boundfit(infile, filemode='ascii',
         raise ValueError('Invalid fittype: ' + str(fittype))
     
     for option, outfile in zip(
-        ['1', '2', 'C', '0'],
+        ['1', '2', '3', 'C', '0'],
         [outfile1, outfile2, outfile3, '']
     ):
         # Option?
         # (1) Save last fit
-        # (2) Save fit predictions
+        # (2) Save fit predictions (fitted range)
+        # (3) Save fit predictions (original range)
         # (C) Save fit coefficients
         # (N) New fit
         # (0) EXIT
