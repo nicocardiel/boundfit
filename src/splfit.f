@@ -327,6 +327,8 @@ C Si se quiere refinamos el ajuste
         WRITE(*,101)'(1) Refine X and Y position-> 1 knot'
         WRITE(*,101)'(2) Refine X position ------> 1 knot'
         WRITE(*,101)'(3) Refine Y position ------> 1 knot'
+        WRITE(*,101)'(Y) Refine Y position ------> all knots '//
+     +   '(one at a time)'
         WRITE(*,101)'(A) Add a single new knot'
         IF(ND.GT.2)THEN
           WRITE(*,101)'(D) Delete single knot'
@@ -337,14 +339,15 @@ C Si se quiere refinamos el ajuste
         WRITE(*,101)'(0) EXIT'
         WRITE(*,100)'Option..................................'
         IF(ND.GT.2)THEN
-          CREF(1:1)=READC_B('0','0123AaDdMmRr')
+          CREF(1:1)=READC_B('0','0123AaDdMmRrYy')
         ELSE
-          CREF(1:1)=READC_B('0','0123AaRr')
+          CREF(1:1)=READC_B('0','0123AaRrYy')
         END IF
         IF(CREF.EQ.'a')CREF='A'
         IF(CREF.EQ.'d')CREF='D'
         IF(CREF.EQ.'m')CREF='M'
         IF(CREF.EQ.'r')CREF='R'
+        IF(CREF.EQ.'y')CREF='Y'
         IF(LECHO) WRITE(*,101) CREF
 C..............................................................................
         IF(CREF.EQ.'0')THEN
@@ -510,7 +513,7 @@ C si hemos cambiado el numero de knots, repetimos el ajuste
         END IF
 C------------------------------------------------------------------------------
         NITER=0
-        IF(CREF.NE.'R')THEN
+        IF((CREF.NE.'Y').AND.(CREF.NE.'R'))THEN
           WRITE(*,100)'Knot number to be refined'
           IF(ND.GT.9)THEN
             WRITE(*,100) '........'
@@ -644,7 +647,51 @@ C -> REFINAMOS y --------------------------------------------------------------
             WRITE(*,100)'Valor refinado en Y: '
             WRITE(*,*) YD(NREF)
           END IF
-C -> refinamos todos los nodos-------------------------------------------------
+C -> refinamos todos los nodos en Y -------------------------------------------
+        ELSEIF(CREF.EQ.'Y')THEN
+          CALL RANSPL(ND,NRANND)            !ordenamos los Knots aleatoriamente
+          NITER=NITER+1
+          IF(CVERBOSE.EQ.'y') WRITE(*,*)
+          WRITE(*,109)'>>> REFINEMENT #',NITER
+          WRITE(*,100)' --> '
+          DO I=1,ND-1                !mostramos el orden aleatorio de los Knots
+            WRITE(CDUMMY,*)NRANND(I)
+            CALL RMBLANK(CDUMMY,CDUMMY,L)
+            WRITE(*,100)CDUMMY(1:L)//','
+          END DO
+          WRITE(CDUMMY,*)NRANND(ND)
+          CALL RMBLANK(CDUMMY,CDUMMY,L)
+          WRITE(*,101)CDUMMY(1:L)
+          DO H=1,ND
+            IF(CVERBOSE.EQ.'y') WRITE(*,*)
+            NREF=NRANND(H)
+            XX0(1)=YD(NREF)
+            IF(YD(NREF).NE.0.0)THEN
+              DXX0(1)=YD(NREF)*0.05
+            ELSEIF(YD(1).NE.YD(ND))THEN
+              DXX0(1)=(YD(1)-YD(ND))/5.
+            ELSE
+              DXX0(1)=1. !que remedio
+            END IF
+            IF(CVERBOSE.EQ.'y')THEN
+              WRITE(*,130) 'knot#',NREF,'> '
+              WRITE(*,100) 'Initial value Y: '
+              WRITE(*,*) XX0(1)
+            END IF
+            CALL DOWNHILL(1,XX0,DXX0,YFUNK_SPLFIT2,1.0,0.5,2.0,
+     +       YRMSTOL,XX,DXX,NEVAL,NEVALMAX)
+            IF(CVERBOSE.EQ.'y')THEN
+              WRITE(*,131) 'knot#',NREF,'> NEVAL: ',NEVAL
+            END IF
+            YD(NREF)=XX(1)
+            IF(CVERBOSE.EQ.'y')THEN
+              WRITE(*,130) 'knot#',NREF,'> '
+              WRITE(*,100) 'Refined value Y: '
+              WRITE(*,*) XX(1)
+            END IF
+            SIGMA=SQRT(YFUNK_SPLFIT2(XX))
+          END DO
+C -> refinamos todos los nodos en X e Y ---------------------------------------
         ELSEIF(CREF.EQ.'R')THEN
           CALL RANSPL(ND,NRANND)            !ordenamos los Knots aleatoriamente
           NITER=NITER+1

@@ -10,7 +10,8 @@ def exec_boundfit(infile, filemode='ascii',
                   xmin=None, xmax=None,
                   rescaling=None, xfactor=None, yfactor=None,
                   poldeg=2, knots=None, xi=1000, alfa=2.0, beta=0.0, tau=0.0,
-                  side=1, yrmstol=1E-5, nmaxiter=1000, nrefine=None,
+                  side=1, yrmstol=1E-5, nmaxiter=1000,
+                  nrefine=None, crefine='XY',
                   sampling=1000,
                   outbasefilename=None):
     """Execute boundfit
@@ -69,6 +70,9 @@ def exec_boundfit(infile, filemode='ascii',
         Maximum number of iterations.
     nrefine : int
         Number of refinements of the X and Y knot location.
+    crefine : str
+        Type of refinement: 'XY' refine both X and Y location of
+        each knot, whereas 'Y' refines only in the Y direction.
     sampling : int
         Sampling between xmin and xmax when computing the output
         fit.
@@ -215,7 +219,12 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(1111)      # NSEED, negative to call srand(time())
         pwrite('n')       # Enhanced verbosity
         if nrefine > 0:
-            pwrite('r')       # Refine X and Y position-> all knots (one at a time)
+            if crefine == 'XY':
+                pwrite('r')  # Refine X and Y position-> all knots (one at a time)
+            elif crefine == 'Y':
+                pwrite('y')  # Refine Y position -> all knots (one at a time)
+            else:
+                raise ValueError('Unexpectec crefine value: ' + str(crefine))
             pwrite(nrefine)   # Nrefine
         pwrite(0)         # Exit refinement process
     else:
@@ -245,11 +254,21 @@ def exec_boundfit(infile, filemode='ascii',
     p.stdin.close()
 
     with open(logfile, 'w') as f:
-        f.write(p.stdout.read())
+        logtext = p.stdout.read()
+        f.write(logtext)
         print('INFO> Generating file: ' + logfile)
+
+    # check that boundfit has finished properly
+    if logtext.splitlines()[-1] != "End of BoundFit execution!":
+        logerr = True
+    else:
+        logerr = False
 
     p.stdout.close()
     p.wait()
     
     p = subprocess.Popen('rm .running_BoundFit', shell=True)
     p.wait()
+
+    if logerr:
+        raise ValueError("Error while executing boundfit. Check log file.")
