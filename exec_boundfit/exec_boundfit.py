@@ -14,7 +14,7 @@ def exec_boundfit(infile, filemode='ascii',
                   side=1, yrmstol=1E-5, nmaxiter=1000,
                   crefine=None, nrefine=None,
                   sampling=1000,
-                  outbasefilename=None):
+                  outbasefilename=None, verbosity=0):
     """Execute boundfit
 
     Parameters
@@ -90,6 +90,11 @@ def exec_boundfit(infile, filemode='ascii',
           original data set (including points outside fitted range)
         - _coeff.bfg: fit coefficients
         - .log: execution log containing the terminal output
+    verbosity : int
+        Verbosity level:
+        - 0: none
+        - 1: only the input file name
+        - 2: input file name and additional details
         
     """
     
@@ -114,6 +119,9 @@ def exec_boundfit(infile, filemode='ascii',
             if nrefine is None:
                 raise ValueError('You must specify a value for nrefine')
         
+    if verbosity > 0:
+        print('[exec_boundfit] Working with file: ' + str(infile))
+
     # determine output file names
     if outbasefilename is None:
         outbasefilename = Path(infile).stem
@@ -127,7 +135,8 @@ def exec_boundfit(infile, filemode='ascii',
     # remove output files if they already exists
     for dumfile in (outfile0, outfile1, outfile2, outfile3, outfile4, logfile):
         if os.path.exists(dumfile):
-            print('WARNING> Deleting existing file: ' + dumfile)
+            if verbosity > 1:
+                print('WARNING> Deleting existing file: ' + dumfile)
             p = subprocess.Popen('rm ' + dumfile, shell=True)
             p.wait()
     p = subprocess.Popen('touch .running_BoundFit', shell=True)
@@ -258,14 +267,16 @@ def exec_boundfit(infile, filemode='ascii',
         if option != '0':
             # Output ASCII file name?
             pwrite(outfile)
-            print('INFO> Generating file: ' + outfile)
+            if verbosity > 1:
+                print('INFO> Generating file: ' + outfile)
 
     p.stdin.close()
 
     with open(logfile, 'w') as f:
         logtext = p.stdout.read()
         f.write(logtext)
-        print('INFO> Generating file: ' + logfile)
+        if verbosity > 1:
+            print('INFO> Generating file: ' + logfile)
 
     # check that boundfit has finished properly
     if logtext.splitlines()[-1] != "End of BoundFit execution!":
