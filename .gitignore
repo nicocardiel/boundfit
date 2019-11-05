@@ -25,6 +25,7 @@ src/boundfit
 src/.DS_Store
 
 exec_boundfit/.ipynb_checkpoints
+exec_boundfit/.idea
 exec_boundfit/__pycache__
 exec_boundfit/example*.bft
 exec_boundfit/example*.log
