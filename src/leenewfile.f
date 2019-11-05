@@ -319,7 +319,7 @@ C------------------------------------------------------------------------------
 C normalizacion de los datos al intervalo [-1,+1] en ambos ejes
         WRITE(*,*)
         WRITE(*,100) 'Normalise to [-1,+1] (y/n) or '//
-     +   '(r)escale data ranges'
+     +   '(r)escale data ranges '
         CRENORM(1:1)=READC_B('y','ynr')
         IF(LECHO) WRITE(*,101) CRENORM
         IF(CRENORM.EQ.'y')THEN

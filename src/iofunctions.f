@@ -88,7 +88,9 @@ C------------------------------------------------------------------------------
           ELSE
             DO I=1,TRUELEN(CADENA)
               IF(INDEX(CVAL,CADENA(I:I)).EQ.0)THEN
-                WRITE(*,101)'ERROR: invalid character(s). Try again.'
+                WRITE(*,100)'ERROR: invalid character(s): '
+                WRITE(*,101) CADENA(I:I)
+                WRITE(*,101) 'Try again!'
                 IF(CDEF.EQ.'@') WRITE(*,100)'? '
                 NERR=NERR+1
                 IF(NERR.GT.10) STOP 'FATAL ERROR: too many errors.'
@@ -166,8 +168,9 @@ C------------------------------------------------------------------------------
         READ(CADENA,*,ERR=20) N
         READI_B=N
         RETURN
-20      WRITE(*,101)'ERROR: invalid character(s) found in '//
-     +   'number. Try again.'
+20      WRITE(*,100)'ERROR: invalid character(s) found in number: '
+        WRITE(*,101) CADENA(1:TRUELEN(CADENA))
+        WRITE(*,101) 'Try again!'
         IF(CDEF.EQ.'@') WRITE(*,100)'? '
         NERR=NERR+1
         IF(NERR.GT.10) STOP 'FATAL ERROR: too many errors.'
@@ -248,8 +251,9 @@ C
         IF((N.LT.N1).OR.(N.GT.N2)) GOTO 30
         RETURN
 C------------------------------------------------------------------------------
-20      WRITE(*,101)'ERROR: invalid character(s) found in '//
-     +   'number. Try again.'
+20      WRITE(*,100)'ERROR: invalid character(s) found in number: '
+        WRITE(*,101) CADENA(1:TRUELEN(CADENA))
+        WRITE(*,101)'Try again!'
 C
         NERR=NERR+1
         IF(NERR.GT.10) STOP 'FATAL ERROR: too many errors.'
@@ -328,8 +332,9 @@ C------------------------------------------------------------------------------
         READ(CADENA,*,ERR=20) F
         READF_B=F
         RETURN
-20      WRITE(*,101)'ERROR: invalid character(s) found in '//
-     +   'number. Try again.'
+20      WRITE(*,100)'ERROR: invalid character(s) found in number: '
+        WRITE(*,101) CADENA(1:TRUELEN(CADENA))
+        WRITE(*,101)'Try again!'
         IF(CDEF.EQ.'@') WRITE(*,100)'? '
         NERR=NERR+1
         IF(NERR.GT.10) STOP 'FATAL ERROR: too many errors.'
