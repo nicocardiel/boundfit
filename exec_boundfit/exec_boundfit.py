@@ -1,3 +1,4 @@
+import numpy as np
 import os
 from pathlib import Path
 import subprocess
@@ -8,7 +9,7 @@ def exec_boundfit(infile, filemode='ascii',
                   fittype=None,
                   xmin=None, xmax=None,
                   rescaling=None, xfactor=None, yfactor=None,
-                  poldeg=2, nknots=None, xi=1000, alfa=2.0, beta=0.0, tau=0.0, 
+                  poldeg=2, knots=None, xi=1000, alfa=2.0, beta=0.0, tau=0.0,
                   side=1, yrmstol=1E-5, nmaxiter=1000, nrefine=None,
                   sampling=1000,
                   outbasefilename=None):
@@ -48,8 +49,10 @@ def exec_boundfit(infile, filemode='ascii',
         Multiplicative factor for Y data when rescaling='factors'.
     poldeg : integer
         Polynomial degree for fittype=1 or 2.
-    nknots : integer
-        Number of knots for fittype=3.
+    knots : integer or array-like object
+        Total number of knots (single number) or array with
+        intermediate knot location. This parameter is needed when
+        using fittype=3.
     xi : float
         Asymmetry coefficient.
     alfa : float
@@ -96,8 +99,10 @@ def exec_boundfit(infile, filemode='ascii',
         if yfactor is None:
             raise ValueError('You must specify a value for yfactor')
     if fittype == 3:
-        if nknots is None:
-            raise ValueError('You must specify a value for nknots')
+        if knots is None:
+            raise ValueError('You must specify a value for knots')
+        if type(knots) is not int:
+            knots = np.asarray(knots)
         if nrefine is None:
             raise ValueError('You must specify a value for nrefine')
         
@@ -111,7 +116,7 @@ def exec_boundfit(infile, filemode='ascii',
     logfile = outbasefilename + '.log'
     
     # remove output files if they already exists
-    for dumfile in (outfile1, outfile2, outfile3, logfile):
+    for dumfile in (outfile1, outfile2, outfile3, outfile4, logfile):
         if os.path.exists(dumfile):
             print('WARNING> Deleting existing file: ' + dumfile)
             p = subprocess.Popen('rm ' + dumfile, shell=True)
@@ -152,7 +157,7 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(xmax)
 
     # Normalise data ranges to [-1,+1] (y/n) or (r)escale
-    if rescaling == None:
+    if rescaling is None:
         pwrite('n')
     elif rescaling == 'normalise':
         pwrite('y')
@@ -185,8 +190,21 @@ def exec_boundfit(infile, filemode='ascii',
             pwrite('n')   # Incremental fit of coefficients
     elif fittype == 3:
         pwrite('n')       # Using fit constraints
+        if type(knots) is np.ndarray:
+            # note that in this case the array of knots do not
+            # include the two knots at the borders
+            nknots = len(knots) + 2
+        elif type(knots) is int:
+            nknots = knots
+        else:
+            raise ValueError('Invalid knots value: ', str(knots))
         pwrite(nknots)    # Number of knots
-        pwrite('y')       # Equidistant knot arrangement
+        if type(knots) is np.ndarray:
+            pwrite('n')   # Equidistant knot arrangement
+            for iknot in range(nknots - 2):
+                pwrite(knots[iknot])  # X-coordinate of intermediate knot
+        elif type(knots) is int:
+            pwrite('y')   # Equidistant knot arrangement
         pwrite(xi)        # Asymmetry coefficient (xi)
         pwrite(alfa)      # Power for distances
         pwrite(beta)      # Power for errors
@@ -196,15 +214,16 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(nmaxiter)  # Nmaxiter
         pwrite(1111)      # NSEED, negative to call srand(time())
         pwrite('n')       # Enhanced verbosity
-        pwrite('r')       # Refine X and Y position-> all knots (one at a time)
-        pwrite(nrefine)   # Nrefine
+        if nrefine > 0:
+            pwrite('r')       # Refine X and Y position-> all knots (one at a time)
+            pwrite(nrefine)   # Nrefine
         pwrite(0)         # Exit refinement process
     else:
         raise ValueError('Invalid fittype: ' + str(fittype))
     
     for option, outfile in zip(
         ['1', '2', '3', 'C', '0'],
-        [outfile1, outfile2, outfile3, '']
+        [outfile1, outfile2, outfile3, outfile4, '']
     ):
         # Option?
         # (1) Save last fit
