@@ -30,10 +30,12 @@ C functions
         INTEGER READI_B
         INTEGER SYSTEMFUNCTION
         INTEGER TRUEBEG,TRUELEN
+        REAL FMEDIAN1
         REAL READF_B
         CHARACTER*255 READC_B
 C variables
         INTEGER I
+        INTEGER K,K1,K2
         INTEGER L1,L2
         INTEGER ISYSTEM
         INTEGER NSKIP,NDATA
@@ -41,9 +43,10 @@ C variables
         INTEGER NDATABUFF,NDATABUFF_INITIAL
         INTEGER ISTATUSEXTRAE
         INTEGER NCOMMENTS
+        INTEGER WIDTH_MEDFILT,SEMIWIDTH
         REAL XDATA(NDATAMAX)
         REAL XDATA_INITIAL(NDATAMAX)
-        REAL YDATA(NDATAMAX)
+        REAL YDATA(NDATAMAX),YDATA_(NDATAMAX),YDUM(NDATAMAX)
         REAL EYDATA(NDATAMAX)
         REAL FEXTRAE
         REAL XMINBUFF,XMAXBUFF
@@ -304,6 +307,50 @@ C------------------------------------------------------------------------------
             WRITE(*,*)
             WRITE(*,101) 'FATAL ERROR: unexpected end of file reached'
             STOP
+          END IF
+          CALL FINDMML(NDATABUFF,1,NDATABUFF,XDATA,XMINBUFF,XMAXBUFF)
+          CALL FINDMML(NDATABUFF,1,NDATABUFF,YDATA,YMINBUFF,YMAXBUFF)
+          CALL FINDMML(NDATABUFF,1,NDATABUFF,EYDATA,EYMINBUFF,EYMAXBUFF)
+          WRITE(*,100) '>>> Xmin, Xmax..............................: '
+          WRITE(*,*) XMINBUFF,XMAXBUFF
+          WRITE(*,100) '>>> Ymin, Ymax..............................: '
+          WRITE(*,*) YMINBUFF,YMAXBUFF
+          WRITE(*,100) '>>> EYmin, EYmax............................: '
+          WRITE(*,*) EYMINBUFF,EYMAXBUFF
+        END IF
+C------------------------------------------------------------------------------
+C median filtering
+        WRITE(*,*)
+        WRITE(*,100) 'Window size for median filtering '//
+     +   '(1=no filtering; must be odd) '
+        WIDTH_MEDFILT=READI_B('1')
+        IF(LECHO)THEN
+          WRITE(CDUMMY,*) WIDTH_MEDFILT
+          WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+        END IF
+        IF(WIDTH_MEDFILT.GT.1)THEN
+          IF(MOD(WIDTH_MEDFILT,2).NE.0)THEN
+            WIDTH_MEDFILT=WIDTH_MEDFILT+1
+          END IF
+          SEMIWIDTH=INT(WIDTH_MEDFILT/2)
+          IF(WIDTH_MEDFILT.LT.NDATABUFF)THEN
+            CALL ORDENA3F(NDATABUFF,XDATA,YDATA,EYDATA)
+            DO I=1,NDATABUFF
+              YDATA_(I)=YDATA(I)
+            END DO
+            DO I=1,NDATABUFF
+              K1=I-SEMIWIDTH
+              IF(K1.LT.1) K1=1
+              K2=I+SEMIWIDTH
+              IF(K2.GT.NDATABUFF) K2=NDATABUFF
+              DO K=K1,K2
+                YDUM(K-K1+1)=YDATA_(K)
+              END DO
+              YDATA(I)=FMEDIAN1(K2-K1+1,YDUM)
+            END DO
+          ELSE
+            WRITE(*,101) 'WARNING: window size too large for current'//
+     +       ' number of data points'
           END IF
           CALL FINDMML(NDATABUFF,1,NDATABUFF,XDATA,XMINBUFF,XMAXBUFF)
           CALL FINDMML(NDATABUFF,1,NDATABUFF,YDATA,YMINBUFF,YMAXBUFF)

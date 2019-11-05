@@ -555,6 +555,7 @@ C save result
         COPC=' '
         DO WHILE(COPC.NE.'0')
           WRITE(*,*)
+          WRITE(*,101) '(D) Save fitted data'
           WRITE(*,101) '(1) Save last fit'
           WRITE(*,101) '(2) Save fit predictions (fitted range)'
           WRITE(*,101) '(3) Save fit predictions (original range)'
@@ -562,7 +563,7 @@ C save result
           WRITE(*,101) '(N) New fit'
           WRITE(*,101) '(0) EXIT'
           WRITE(*,100) 'Option..................................'
-          COPC(1:1)=READC_B('0','0123cCnN')
+          COPC(1:1)=READC_B('0','0123cCdDnN')
           IF(LECHO) WRITE(*,101) COPC
           IF((COPC.EQ.'n').OR.(COPC.EQ.'N'))THEN
             GOTO 10
@@ -589,7 +590,13 @@ C save result
             WRITE(*,101) 'End of BoundFit execution!'
             STOP
           ELSE
-            IF(COPC.EQ.'1')THEN
+            IF((COPC.EQ.'d').OR.(COPC.EQ.'D'))THEN
+              NDATA=NDATABUFF
+              DO I=1,NDATA
+                XP(I)=(XDATA(I)+CX)/BX
+                YP(I)=(YDATA(I)+CY)/BY
+              END DO
+            ELSEIF(COPC.EQ.'1')THEN
               !xmin
               WRITE(CDUMMY,*) (XMINBUFF+CX)/BX
               L1=TRUEBEG(CDUMMY)
@@ -642,20 +649,22 @@ C save result
               WRITE(*,101) 'FATAL ERROR#4 invalid COPC'
               STOP
             END IF
-            IF((IOPC.EQ.1).OR.(IOPC.EQ.2))THEN !..............simple polynomial
-              DO I=1,NDATA
-                YP(I)=FPOLY(NTERMS-1,A,XP(I))
-              END DO
-            ELSEIF(IOPC.EQ.3)THEN !............................adaptive splines
-              I0SPL=1 !comenzar buscando en el inicio de la tabla
-              DO I=1,NDATA
-                CALL CUBSPLX(XKNOT,YKNOT,ASPL,BSPL,CSPL,
-     +           NKNOTS,I0SPL,XP(I),YP(I))
-              END DO
-            ELSE
-              WRITE(*,100) 'IOPC='
-              WRITE(*,*) IOPC
-              STOP 'FATAL ERROR#5 invalid IOPC'
+            IF((COPC.EQ.'1').OR.(COPC.EQ.'2').OR.(COPC.EQ.'3'))THEN
+              IF((IOPC.EQ.1).OR.(IOPC.EQ.2))THEN !............simple polynomial
+                DO I=1,NDATA
+                  YP(I)=FPOLY(NTERMS-1,A,XP(I))
+                END DO
+              ELSEIF(IOPC.EQ.3)THEN !..........................adaptive splines
+                I0SPL=1 !comenzar buscando en el inicio de la tabla
+                DO I=1,NDATA
+                  CALL CUBSPLX(XKNOT,YKNOT,ASPL,BSPL,CSPL,
+     +             NKNOTS,I0SPL,XP(I),YP(I))
+                END DO
+              ELSE
+                WRITE(*,100) 'IOPC='
+                WRITE(*,*) IOPC
+                STOP 'FATAL ERROR#5 invalid IOPC'
+              END IF
             END IF
             !save data in external ASCII file
             CALL SAVERESULT

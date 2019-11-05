@@ -8,10 +8,11 @@ def exec_boundfit(infile, filemode='ascii',
                   xcol=1, ycol=2,
                   fittype=None,
                   xmin=None, xmax=None,
+                  medfiltwidth=1,
                   rescaling=None, xfactor=None, yfactor=None,
                   poldeg=2, knots=None, xi=1000, alfa=2.0, beta=0.0, tau=0.0,
                   side=1, yrmstol=1E-5, nmaxiter=1000,
-                  nrefine=None, crefine='XY',
+                  crefine=None, nrefine=None,
                   sampling=1000,
                   outbasefilename=None):
     """Execute boundfit
@@ -38,6 +39,8 @@ def exec_boundfit(infile, filemode='ascii',
     xmax : float
         Maximum X to be employed. If None, use maximum value
         in data set.
+    medfiltwidth : int
+        Window size for median filtering (1=no filtering).
     rescaling : string
         If not None, it must be either 'normalise' or 'factors'.
         The option 'normalise' indicates that the data ranges
@@ -68,11 +71,11 @@ def exec_boundfit(infile, filemode='ascii',
         Numerical precision YRMSTOL.
     nmaxiter : int
         Maximum number of iterations.
-    nrefine : int
-        Number of refinements of the X and Y knot location.
     crefine : str
         Type of refinement: 'XY' refine both X and Y location of
         each knot, whereas 'Y' refines only in the Y direction.
+    nrefine : int
+        Number of refinements of the X and Y knot location.
     sampling : int
         Sampling between xmin and xmax when computing the output
         fit.
@@ -107,12 +110,14 @@ def exec_boundfit(infile, filemode='ascii',
             raise ValueError('You must specify a value for knots')
         if type(knots) is not int:
             knots = np.asarray(knots)
-        if nrefine is None:
-            raise ValueError('You must specify a value for nrefine')
+        if crefine is not None:
+            if nrefine is None:
+                raise ValueError('You must specify a value for nrefine')
         
     # determine output file names
     if outbasefilename is None:
         outbasefilename = Path(infile).stem
+    outfile0 = outbasefilename + '_data.bft'
     outfile1 = outbasefilename + '_linfit.bft'
     outfile2 = outbasefilename + '_predf.bft'
     outfile3 = outbasefilename + '_predo.bft'
@@ -120,7 +125,7 @@ def exec_boundfit(infile, filemode='ascii',
     logfile = outbasefilename + '.log'
     
     # remove output files if they already exists
-    for dumfile in (outfile1, outfile2, outfile3, outfile4, logfile):
+    for dumfile in (outfile0, outfile1, outfile2, outfile3, outfile4, logfile):
         if os.path.exists(dumfile):
             print('WARNING> Deleting existing file: ' + dumfile)
             p = subprocess.Popen('rm ' + dumfile, shell=True)
@@ -159,6 +164,9 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite('')
     else:
         pwrite(xmax)
+
+    # Median filtering
+        pwrite(medfiltwidth)
 
     # Normalise data ranges to [-1,+1] (y/n) or (r)escale
     if rescaling is None:
@@ -218,7 +226,7 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(nmaxiter)  # Nmaxiter
         pwrite(1111)      # NSEED, negative to call srand(time())
         pwrite('n')       # Enhanced verbosity
-        if nrefine > 0:
+        if crefine is not None:
             if crefine == 'XY':
                 pwrite('r')  # Refine X and Y position-> all knots (one at a time)
             elif crefine == 'Y':
@@ -231,10 +239,11 @@ def exec_boundfit(infile, filemode='ascii',
         raise ValueError('Invalid fittype: ' + str(fittype))
     
     for option, outfile in zip(
-        ['1', '2', '3', 'C', '0'],
-        [outfile1, outfile2, outfile3, outfile4, '']
+        ['D', '1', '2', '3', 'C', '0'],
+        [outfile0, outfile1, outfile2, outfile3, outfile4, '']
     ):
         # Option?
+        # (D) Save fitted data
         # (1) Save last fit
         # (2) Save fit predictions (fitted range)
         # (3) Save fit predictions (original range)

@@ -20,6 +20,7 @@ factorialpf.f \
 fderi.f \
 fextrae.f \
 findmml.f \
+fmedian1.f \
 fpoly.f \
 indexr.f \
 iofunctions.f \
@@ -27,6 +28,7 @@ leenewfile.f \
 Makefile.am \
 merge_knots.f \
 ordena1f.f \
+ordena3f.f \
 polfit.f \
 polfit_xic.f \
 pseudofit.f \
