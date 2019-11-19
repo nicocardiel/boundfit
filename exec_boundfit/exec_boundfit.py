@@ -175,7 +175,7 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(xmax)
 
     # Median filtering
-        pwrite(medfiltwidth)
+    pwrite(medfiltwidth)
 
     # Normalise data ranges to [-1,+1] (y/n) or (r)escale
     if rescaling is None:
