@@ -82,13 +82,14 @@ def exec_boundfit(infile, filemode='ascii',
     outbasefilename : str
         Output file name to store fit results. If None, the base name
         from infile is used, appending the following suffixes:
+        - _data.bft: fitted data
         - _linfit.bfg: fit computed from 'xmin' to 'xmax' using
           'sampling' points.
         - _predf.bfg: predictions for each data point within the
           fitted range
         - _predo.bfg: predictions for each data point in the
           original data set (including points outside fitted range)
-        - _coeff.bfg: fit coefficients
+        - _coeff.bfg: fitted coefficients
         - .log: execution log containing the terminal output
     verbosity : int
         Verbosity level:
@@ -293,3 +294,126 @@ def exec_boundfit(infile, filemode='ascii',
 
     if logerr:
         raise ValueError("Error while executing boundfit. Check log file.")
+
+
+class BoundaryRegion:
+    def __init__(self, xfit, yfit,
+                 xminfit, xmaxfit,
+                 xminuseful, xmaxuseful,
+                 xfactor, yfactor, medfiltwidth, knots, crefine):
+        # initial data and parameters
+        self.xfit = np.asarray(xfit)
+        self.yfit = np.asarray(yfit)
+        if xminfit is None:
+            self.xminfit = xfit.min()
+        else:
+            self.xminfit = xminfit
+        if xmaxfit is None:
+            self.xmaxfit = xfit.max()
+        else:
+            self.xmaxfit = xmaxfit
+        if xminuseful is None:
+            self.xminuseful = xfit.min()
+        else:
+            self.xminuseful = xminuseful
+        if xmaxuseful is None:
+            self.xmaxuseful = xfit.max()
+        else:
+            self.xmaxuseful = xmaxuseful
+        if xfactor is None:
+            self.xfactor = 1.0
+        else:
+            self.xfactor = xfactor
+        if yfactor is None:
+            self.yfactor = 1.0
+        else:
+            self.yfactor = yfactor
+        self.medfiltwidth = medfiltwidth
+        self.knots = knots
+        self.crefine = crefine
+
+        # generate temporary output file to store data to be fitted
+        dumfile = 'test_tmp.dat'
+        if os.path.exists(dumfile):
+            p = subprocess.Popen('rm ' + dumfile, shell=True)
+            p.wait()
+        np.savetxt(dumfile, np.column_stack([self.xfit, self.yfit]))
+
+        # execute boundfit
+        exec_boundfit(
+            infile=dumfile, medfiltwidth=self.medfiltwidth,
+            xmin=self.xminfit, xmax=self.xmaxfit,
+            fittype=3, rescaling='factors',
+            xfactor=self.xfactor, yfactor=self.yfactor,
+            knots=self.knots,
+            crefine=self.crefine, nrefine=100, side=1,
+            outbasefilename='test'
+        )
+
+        filed = 'test_data.bft'
+        tablad = np.genfromtxt(filed)
+        self.waved = tablad[:, 0]
+        self.specd = tablad[:, 1]
+
+        filef = 'test_predo.bft'
+        tablaf = np.genfromtxt(filef)
+        self.wavef = tablaf[:, 0]
+        self.specf = tablaf[:, 1]
+
+        filec = 'test_coeff.bft'
+        with open(filec) as f:
+            coeffdata = f.readlines()
+        nknots = int(coeffdata[0].split()[0])
+        xknot = []
+        yknot = []
+        for i in range(nknots):
+            xknot.append(float(coeffdata[i + 1].split()[1]))
+            yknot.append(float(coeffdata[i + 1].split()[2]))
+        self.xknot = np.array(xknot)
+        self.yknot = np.array(yknot)
+
+class SuperBoundary():
+    """Merge boundary regions.
+
+    """
+    def __init__(self, listboundregions):
+        for contreg in listboundregions:
+            if not isinstance(contreg, BoundaryRegion):
+                raise ValueError('Expected BoundaryRegion instance not found')
+
+        self.xfit = listboundregions[0].xfit
+        nfit = len(self.xfit)
+        yfit = np.zeros(nfit)
+
+        for i in range(nfit):
+            xdum = self.xfit[i]
+            ydum = 0
+            nydum = 0
+            for boundreg in listboundregions:
+                if xdum != boundreg.xfit[i]:
+                    raise ValueError('Unexpected xfit value')
+                if boundreg.xminuseful <= xdum <= boundreg.xmaxuseful:
+                    ydum += boundreg.specf[i]
+                    nydum += 1
+            if nydum > 0:
+                ydum /= nydum
+            yfit[i] = ydum
+
+        self.yfit = np.array(yfit)
+
+        # merge knots
+        self.xknot = listboundregions[0].xknot
+        self.yknot = listboundregions[0].yknot
+        self.knotregion = np.ones_like(self.xknot, dtype=int)
+        if len(listboundregions) > 1:
+            for ireg in range(1, len(listboundregions)):
+                self.xknot = np.concatenate(
+                    (self.xknot, listboundregions[ireg].xknot)
+                )
+                self.yknot = np.concatenate(
+                    (self.yknot, listboundregions[ireg].yknot)
+                )
+                self.knotregion = np.concatenate(
+                    (self.knotregion,
+                     np.ones_like(listboundregions[ireg].xknot, dtype=int) * (ireg + 1))
+                )
