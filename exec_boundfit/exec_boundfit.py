@@ -235,15 +235,16 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(nmaxiter)  # Nmaxiter
         pwrite(1111)      # NSEED, negative to call srand(time())
         pwrite('n')       # Enhanced verbosity
-        if crefine is not None:
-            if crefine == 'XY':
-                pwrite('r')  # Refine X and Y position-> all knots (one at a time)
-            elif crefine == 'Y':
-                pwrite('y')  # Refine Y position -> all knots (one at a time)
-            else:
-                raise ValueError('Unexpectec crefine value: ' + str(crefine))
-            pwrite(nrefine)   # Nrefine
-        pwrite(0)         # Exit refinement process
+        if nknots > 2:
+            if crefine is not None:
+                if crefine == 'XY':
+                    pwrite('r')  # Refine X and Y position-> all knots (one at a time)
+                elif crefine == 'Y':
+                    pwrite('y')  # Refine Y position -> all knots (one at a time)
+                else:
+                    raise ValueError('Unexpectec crefine value: ' + str(crefine))
+                pwrite(nrefine)   # Nrefine
+            pwrite(0)         # Exit refinement process
     else:
         raise ValueError('Invalid fittype: ' + str(fittype))
     
