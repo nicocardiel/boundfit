@@ -298,9 +298,10 @@ def exec_boundfit(infile, filemode='ascii',
 
 class BoundaryRegion:
     def __init__(self, xfit, yfit,
-                 xminfit, xmaxfit,
-                 xminuseful, xmaxuseful,
-                 xfactor, yfactor, medfiltwidth, knots, crefine):
+                 xminfit=None, xmaxfit=None,
+                 xminuseful=None, xmaxuseful=None,
+                 xfactor=None, yfactor=None, medfiltwidth=None,
+                 knots=None, crefine=None):
         # initial data and parameters
         self.xfit = np.asarray(xfit)
         self.yfit = np.asarray(yfit)
@@ -352,13 +353,12 @@ class BoundaryRegion:
 
         filed = 'test_data.bft'
         tablad = np.genfromtxt(filed)
-        self.waved = tablad[:, 0]
-        self.specd = tablad[:, 1]
+        self.xfitd = tablad[:, 0]
+        self.yfitd = tablad[:, 1]
 
         filef = 'test_predo.bft'
         tablaf = np.genfromtxt(filef)
-        self.wavef = tablaf[:, 0]
-        self.specf = tablaf[:, 1]
+        self.predo = tablaf[:, 1]
 
         filec = 'test_coeff.bft'
         with open(filec) as f:
@@ -372,7 +372,8 @@ class BoundaryRegion:
         self.xknot = np.array(xknot)
         self.yknot = np.array(yknot)
 
-class SuperBoundary():
+
+class SuperBoundary:
     """Merge boundary regions.
 
     """
@@ -381,11 +382,14 @@ class SuperBoundary():
             if not isinstance(contreg, BoundaryRegion):
                 raise ValueError('Expected BoundaryRegion instance not found')
 
+        self.listboundregions = listboundregions
         self.xfit = listboundregions[0].xfit
-        nfit = len(self.xfit)
-        yfit = np.zeros(nfit)
+        nxvalues = len(self.xfit)
 
-        for i in range(nfit):
+        yboundary = np.zeros(nxvalues, dtype=float)
+        nfit = np.zeros(nxvalues, dtype=int)
+
+        for i in range(nxvalues):
             xdum = self.xfit[i]
             ydum = 0
             nydum = 0
@@ -393,13 +397,21 @@ class SuperBoundary():
                 if xdum != boundreg.xfit[i]:
                     raise ValueError('Unexpected xfit value')
                 if boundreg.xminuseful <= xdum <= boundreg.xmaxuseful:
-                    ydum += boundreg.specf[i]
+                    ydum += boundreg.predo[i]
                     nydum += 1
+            nfit[i] = nydum
             if nydum > 0:
                 ydum /= nydum
-            yfit[i] = ydum
+            yboundary[i] = ydum
 
-        self.yfit = np.array(yfit)
+        if np.isin(0, nfit):
+            print('WARNING: boundary regions do not overlap')
+            for i in range(nxvalues):
+                if nfit[i] == 0:
+                    print('Pixel #{}, X value={}'.format(i+1, self.xfit[i]))
+
+        self.yboundary = np.array(yboundary)
+        self.nfit = nfit
 
         # merge knots
         self.xknot = listboundregions[0].xknot
@@ -417,3 +429,49 @@ class SuperBoundary():
                     (self.knotregion,
                      np.ones_like(listboundregions[ireg].xknot, dtype=int) * (ireg + 1))
                 )
+
+    def plot(self, ax=None,
+             xmin=None, xmax=None, ymin=None, ymax=None,
+             xlabel=None, ylabel=None, title=None):
+
+        if ax is None:
+            raise ValueError('ax=None is not valid in this function')
+
+        ax.plot(self.xfit, self.yboundary, color='C0', linestyle='--')
+
+        for ibr, br in enumerate(self.listboundregions):
+            if br.medfiltwidth is not None:
+                label = None
+                if ibr == 0:
+                    label = 'Original data'
+                ax.plot(br.xfit, br.yfit, color='black', alpha=0.1, label=label)
+                if ibr == 0:
+                    label = 'Fitted data'
+                ax.plot(br.xfitd, br.yfitd, color='black', alpha=0.5, label=label)
+            else:
+                ax.plot(br.xfit, br.yfit, color='black', alpha=0.5)
+            xdum = br.xfit
+            ydum = br.predo
+            lok = np.logical_and(br.xminfit <= xdum, xdum <= br.xmaxfit)
+            color = 'C{:d}'.format(ibr + 1)
+            ax.plot(xdum[lok], ydum[lok], color=color, linestyle=':')
+            lok = np.logical_and(br.xminuseful <= xdum, xdum <= br.xmaxuseful)
+            ax.plot(xdum[lok], ydum[lok], color=color,
+                    label='Continuum region#{}'.format(ibr+1))
+            ax.plot(br.xknot, br.yknot, 'o', color=color, alpha=0.5)
+
+        if xmin is not None:
+            ax.set_xlim(left=xmin)
+        if xmax is not None:
+            ax.set_xlim(right=xmax)
+        if ymin is not None:
+            ax.set_ylim(bottom=ymin)
+        if ymax is not None:
+            ax.set_ylim(top=ymax)
+        if xlabel is not None:
+            ax.set_xlabel(xlabel)
+        if ylabel is not None:
+            ax.set_ylabel(ylabel)
+        if title is not None:
+            ax.set_title(title)
+        ax.legend()
