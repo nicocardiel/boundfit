@@ -116,6 +116,9 @@ def exec_boundfit(infile, filemode='ascii',
             raise ValueError('You must specify a value for knots')
         if type(knots) is not int:
             knots = np.asarray(knots)
+            # check knots are sorted
+            if np.any(knots[:-1] > knots[1:]):
+                raise ValueError('Knot locations must be sorted!')
         if crefine is not None:
             if nrefine is None:
                 raise ValueError('You must specify a value for nrefine')
