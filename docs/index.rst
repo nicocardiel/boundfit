@@ -20,11 +20,11 @@ generalised least-squares method (`Cardiel 2009, MNRAS, 396, 680
    Comparison between different functional forms for the boundary fitting.
 
 
-.. figure:: images/plots_miles.png
-   :width: 100%
+.. figure:: images/continuum_fitting.png
+   :width: 70%
    :align: center
 
-   Examples of pseudo-continuum fits using adaptive splines.
+   Example of pseudo-continuum fit using adaptive splines.
 
 Document index:
 
