@@ -56,7 +56,7 @@ C------------------------------------------------------------------------------
         IMPLICIT NONE
 C
         INTEGER NMAX
-        PARAMETER (NMAX=20)                        !maximum number of variables
+        PARAMETER (NMAX=32)                        !maximum number of variables
 C
         INTEGER N
         REAL X0(N),DX0(N)

@@ -382,7 +382,7 @@ C..............................................................................
         ELSEIF(IOPC.EQ.3)THEN
           !parametros para el ajuste
           WRITE(*,100) 'Number of knots..................'
-          NKNOTS=READILIM_B('@',2,20)
+          NKNOTS=READILIM_B('@',2,NKNOTSMAX)
           IF(LECHO)THEN
             WRITE(CDUMMY,*) NKNOTS
             WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
