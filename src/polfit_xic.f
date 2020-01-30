@@ -64,8 +64,22 @@ C
         DO I=1,NPTS
           XI=X(I)
           YI=Y(I)
-          IF (MODE) 32,37,39
-32        IF (YI) 35,37,33
+!         IF (MODE) 32,37,39 !obsolete arithmetic IF
+          IF (MODE.LT.0) THEN
+            GOTO 32
+          ELSEIF (MODE.EQ.0) THEN
+            GOTO 37
+          ELSE
+            GOTO 39
+          END IF
+!32        IF (YI) 35,37,33 !obsolete arithmetic IF
+32        IF (YI.LT.0) THEN
+            GOTO 35
+          ELSEIF (YI.EQ.0) THEN
+            GOTO 37
+          ELSE
+            GOTO 33
+          END IF
 33        WEIGHT=1./YI
           GO TO 41
 35        WEIGHT=1./(-YI)
@@ -94,7 +108,14 @@ C
           END DO
         END DO
         DELTA=DETERM(ARRAY,NTERMS)
-        IF (DELTA) 61,57,61
+!       IF (DELTA) 61,57,61 !obsolete arithmetic IF
+        IF (DELTA.LT.0) THEN
+          GOTO 61
+        ELSEIF (DELTA.EQ.0) THEN
+          GOTO 57
+        ELSE
+          GOTO 61
+        END IF
 57      DO J=1,NTERMS
           A(J)=0.
         END DO
