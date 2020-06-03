@@ -379,6 +379,9 @@ class BoundaryRegion:
 class SuperBoundary:
     """Merge boundary regions.
 
+    The individual BoundaryRegion objects must have been created
+    using the same 'xfit' values.
+
     """
     def __init__(self, listboundregions):
         for contreg in listboundregions:
@@ -392,6 +395,8 @@ class SuperBoundary:
         yboundary = np.zeros(nxvalues, dtype=float)
         nfit = np.zeros(nxvalues, dtype=int)
 
+        # for each xfit value, compute average using the prediction
+        # of all the individual BoundaryRegions
         for i in range(nxvalues):
             xdum = self.xfit[i]
             ydum = 0
