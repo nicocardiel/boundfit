@@ -299,99 +299,149 @@ def exec_boundfit(infile, filemode='ascii',
         raise ValueError("Error while executing boundfit. Check log file.")
 
 
-class BoundaryRegion:
-    def __init__(self, xfit, yfit,
+class BoundaryDef:
+    """
+    Auxiliary class to store parameters to fit a single boundary.
+
+    Note: fittype=3 (adaptive splines) is used when calling exec_boundfit()
+
+    Parameters
+    ----------
+    xminfit : float
+        Minimum X value to be employed in the fit. None indicates
+        that no restriction is applied.
+    xmaxfit : float
+        Maximum X value to be employed in the fit. None indicates
+        that no restriction is applied.
+    xminuseful : float
+        Minimum useful X value to be employed when computing the
+        fitted boundary. None indicates that no restriction is applied.
+    xmaxuseful : float
+        Maximum useful X value to be employed when computing the
+        fitted boundary. None indicates that no restriction is applied.
+    xfactor : float
+        Multiplicative factor for X data.
+    yfactor : float
+        Multiplicative factor for Y data.
+    medfiltwidth : int
+        Window size for median filtering (1=no filtering).
+    knots : integer or array-like object
+        Total number of knots (single number) or array with
+        intermediate knot location.
+    crefine : str
+        Type of refinement: 'XY' refine both X and Y location of
+        each knot, whereas 'Y' refines only in the Y direction.
+    nrefine : int
+        Number of refinements of the X and Y knot location.
+    side : int
+        Boundary side: 1 for upper- and 2 for lower-boundary fits.
+    outbasefilename : str
+        Prefix for output file names. See documentation of exec_boundfit()
+        for details.
+
+    Attributes
+    ----------
+    Identical to parameters.
+
+    """
+    def __init__(self,
                  xminfit=None, xmaxfit=None,
                  xminuseful=None, xmaxuseful=None,
                  xfactor=None, yfactor=None, medfiltwidth=None,
-                 knots=None, crefine=None):
-        # initial data and parameters
-        self.xfit = np.asarray(xfit)
-        self.yfit = np.asarray(yfit)
-        if xminfit is None:
-            self.xminfit = xfit.min()
-        else:
-            self.xminfit = xminfit
-        if xmaxfit is None:
-            self.xmaxfit = xfit.max()
-        else:
-            self.xmaxfit = xmaxfit
-        if xminuseful is None:
-            self.xminuseful = xfit.min()
-        else:
-            self.xminuseful = xminuseful
-        if xmaxuseful is None:
-            self.xmaxuseful = xfit.max()
-        else:
-            self.xmaxuseful = xmaxuseful
-        if xfactor is None:
-            self.xfactor = 1.0
-        else:
-            self.xfactor = xfactor
-        if yfactor is None:
-            self.yfactor = 1.0
-        else:
-            self.yfactor = yfactor
+                 knots=None, crefine=None,
+                 nrefine=100, side=1, outbasefilename='test'):
+
+        self.xminfit = xminfit
+        self.xmaxfit = xmaxfit
+        self.xminuseful = xminuseful
+        self.xmaxuseful = xmaxuseful
+        self.xfactor = xfactor
+        self.yfactor = yfactor
         self.medfiltwidth = medfiltwidth
         self.knots = knots
         self.crefine = crefine
+        self.nrefine = nrefine
+        self.side = side
+        self.outbasefilename = outbasefilename
 
-        # generate temporary output file to store data to be fitted
+
+class SuperBoundary:
+    """
+    Merge boundary regions previously defined with BoundDef.
+
+    Parameters
+    ----------
+    xfit : 1D array-like object
+        X values to be fitted.
+    yfit : 1D array-like object
+        Y values to be fitted.
+    listboundregions : list of BoundaryDef objects
+        List with BoundaryDef instances providing the required
+        parameters to be employed to fit each individual boundary.
+
+    Attributes
+    ----------
+    Identical to parameters.
+
+    """
+
+    def __init__(self, xfit, yfit, listboundregions):
+        self.xfit = np.asarray(xfit)
+        self.yfit = np.asarray(yfit)
+        xmin = min(self.xfit)
+        xmax = max(self.xfit)
+        for contreg in listboundregions:
+            if not isinstance(contreg, BoundaryDef):
+                raise ValueError('Expected BoundaryDef instance not found')
+            if contreg.xminfit is None:
+                contreg.xminfit = xmin
+            if contreg.xmaxfit is None:
+                contreg.xmaxfit = xmax
+            if contreg.xminuseful is None:
+                contreg.xminuseful = xmin
+            if contreg.xmaxuseful is None:
+                contreg.xmaxuseful = xmax
+        self.listboundregions = listboundregions
+
+        # generate temporary output file to store the data to be fitted
         dumfile = 'test_tmp.dat'
         if os.path.exists(dumfile):
             p = subprocess.Popen('rm ' + dumfile, shell=True)
             p.wait()
-        np.savetxt(dumfile, np.column_stack([self.xfit, self.yfit]))
-
-        # execute boundfit
-        exec_boundfit(
-            infile=dumfile, medfiltwidth=self.medfiltwidth,
-            xmin=self.xminfit, xmax=self.xmaxfit,
-            fittype=3, rescaling='factors',
-            xfactor=self.xfactor, yfactor=self.yfactor,
-            knots=self.knots,
-            crefine=self.crefine, nrefine=100, side=1,
-            outbasefilename='test'
-        )
-
-        filed = 'test_data.bft'
-        tablad = np.genfromtxt(filed)
-        self.xfitd = tablad[:, 0]
-        self.yfitd = tablad[:, 1]
-
-        filef = 'test_predo.bft'
-        tablaf = np.genfromtxt(filef)
-        self.predo = tablaf[:, 1]
-
-        filec = 'test_coeff.bft'
-        with open(filec) as f:
-            coeffdata = f.readlines()
-        nknots = int(coeffdata[0].split()[0])
-        xknot = []
-        yknot = []
-        for i in range(nknots):
-            xknot.append(float(coeffdata[i + 1].split()[1]))
-            yknot.append(float(coeffdata[i + 1].split()[2]))
-        self.xknot = np.array(xknot)
-        self.yknot = np.array(yknot)
+        np.savetxt(dumfile, np.column_stack([xfit, yfit]))
+        # perform the individual fits
+        for boundreg in listboundregions:
+            exec_boundfit(
+                infile=dumfile, medfiltwidth=boundreg.medfiltwidth,
+                xmin=boundreg.xminfit, xmax=boundreg.xmaxfit,
+                fittype=3, rescaling='factors',
+                xfactor=boundreg.xfactor, yfactor=boundreg.yfactor,
+                knots=boundreg.knots,
+                crefine=boundreg.crefine, nrefine=boundreg.nrefine,
+                side=boundreg.side,
+                outbasefilename=boundreg.outbasefilename
+            )
+            filed = 'test_data.bft'
+            tablad = np.genfromtxt(filed)
+            boundreg.xfitd = tablad[:, 0]
+            boundreg.yfitd = tablad[:, 1]
+            filef = 'test_predo.bft'
+            tablaf = np.genfromtxt(filef)
+            boundreg.predo = tablaf[:, 1]
+            filec = 'test_coeff.bft'
+            with open(filec) as f:
+                coeffdata = f.readlines()
+            nknots = int(coeffdata[0].split()[0])
+            xknot = []
+            yknot = []
+            for i in range(nknots):
+                xknot.append(float(coeffdata[i + 1].split()[1]))
+                yknot.append(float(coeffdata[i + 1].split()[2]))
+            boundreg.xknot = np.array(xknot)
+            boundreg.yknot = np.array(yknot)
 
 
-class SuperBoundary:
-    """Merge boundary regions.
-
-    The individual BoundaryRegion objects must have been created
-    using the same 'xfit' values.
-
-    """
-    def __init__(self, listboundregions):
-        for contreg in listboundregions:
-            if not isinstance(contreg, BoundaryRegion):
-                raise ValueError('Expected BoundaryRegion instance not found')
-
-        self.listboundregions = listboundregions
-        self.xfit = listboundregions[0].xfit
         nxvalues = len(self.xfit)
-
         yboundary = np.zeros(nxvalues, dtype=float)
         nfit = np.zeros(nxvalues, dtype=int)
 
@@ -402,8 +452,6 @@ class SuperBoundary:
             ydum = 0
             nydum = 0
             for boundreg in listboundregions:
-                if xdum != boundreg.xfit[i]:
-                    raise ValueError('Unexpected xfit value')
                 if boundreg.xminuseful <= xdum <= boundreg.xmaxuseful:
                     ydum += boundreg.predo[i]
                     nydum += 1
@@ -416,7 +464,7 @@ class SuperBoundary:
             print('WARNING: boundary regions do not overlap')
             for i in range(nxvalues):
                 if nfit[i] == 0:
-                    print('Pixel #{}, X value={}'.format(i+1, self.xfit[i]))
+                    print('Pixel #{}, X value={}'.format(i + 1, self.xfit[i]))
 
         self.yboundary = np.array(yboundary)
         self.nfit = nfit
@@ -445,27 +493,22 @@ class SuperBoundary:
         if ax is None:
             raise ValueError('ax=None is not valid in this function')
 
-        ax.plot(self.xfit, self.yboundary, color='C0', linestyle='--')
+        ax.plot(self.xfit, self.yboundary, color='C0', linestyle='--', label='Original data')
 
         for ibr, br in enumerate(self.listboundregions):
             if br.medfiltwidth is not None:
                 label = None
                 if ibr == 0:
-                    label = 'Original data'
-                ax.plot(br.xfit, br.yfit, color='black', alpha=0.1, label=label)
-                if ibr == 0:
                     label = 'Fitted data'
                 ax.plot(br.xfitd, br.yfitd, color='black', alpha=0.5, label=label)
-            else:
-                ax.plot(br.xfit, br.yfit, color='black', alpha=0.5)
-            xdum = br.xfit
+            xdum = self.xfit
             ydum = br.predo
             lok = np.logical_and(br.xminfit <= xdum, xdum <= br.xmaxfit)
             color = 'C{:d}'.format(ibr + 1)
             ax.plot(xdum[lok], ydum[lok], color=color, linestyle=':')
             lok = np.logical_and(br.xminuseful <= xdum, xdum <= br.xmaxuseful)
             ax.plot(xdum[lok], ydum[lok], color=color,
-                    label='Continuum region#{}'.format(ibr+1))
+                    label='Continuum region#{}'.format(ibr + 1))
             ax.plot(br.xknot, br.yknot, 'o', color=color, alpha=0.5)
 
         if xmin is not None:

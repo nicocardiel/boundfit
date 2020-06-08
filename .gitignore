@@ -10,6 +10,7 @@ configure
 install-sh
 missing
 .DS_Store
+.idea
 src/Makefile
 src/Makefile.in
 src/boundfit.dSYM/
