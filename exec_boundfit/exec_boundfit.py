@@ -319,12 +319,6 @@ class BoundaryDef:
     xmaxuseful : float
         Maximum useful X value to be employed when computing the
         fitted boundary. None indicates that no restriction is applied.
-    xfactor : float
-        Multiplicative factor for X data.
-    yfactor : float
-        Multiplicative factor for Y data.
-    medfiltwidth : int
-        Window size for median filtering (1=no filtering).
     knots : integer or array-like object
         Total number of knots (single number) or array with
         intermediate knot location.
@@ -347,7 +341,6 @@ class BoundaryDef:
     def __init__(self,
                  xminfit=None, xmaxfit=None,
                  xminuseful=None, xmaxuseful=None,
-                 xfactor=None, yfactor=None, medfiltwidth=None,
                  knots=None, crefine=None,
                  nrefine=100, side=1, outbasefilename='test'):
 
@@ -355,9 +348,6 @@ class BoundaryDef:
         self.xmaxfit = xmaxfit
         self.xminuseful = xminuseful
         self.xmaxuseful = xmaxuseful
-        self.xfactor = xfactor
-        self.yfactor = yfactor
-        self.medfiltwidth = medfiltwidth
         self.knots = knots
         self.crefine = crefine
         self.nrefine = nrefine
@@ -378,6 +368,12 @@ class SuperBoundary:
     listboundregions : list of BoundaryDef objects
         List with BoundaryDef instances providing the required
         parameters to be employed to fit each individual boundary.
+    xfactor : float or None
+        Multiplicative factor for X data.
+    yfactor : float or None
+        Multiplicative factor for Y data.
+    medfiltwidth : int
+        Window size for median filtering (1=no filtering).
 
     Attributes
     ----------
@@ -385,9 +381,13 @@ class SuperBoundary:
 
     """
 
-    def __init__(self, xfit, yfit, listboundregions):
+    def __init__(self, xfit, yfit, listboundregions,
+                 xfactor=None, yfactor=None, medfiltwidth=None):
         self.xfit = np.asarray(xfit)
         self.yfit = np.asarray(yfit)
+        self.xfactor = xfactor
+        self.yfactor = yfactor
+        self.medfiltwidth = medfiltwidth
         xmin = min(self.xfit)
         xmax = max(self.xfit)
         for contreg in listboundregions:
@@ -398,9 +398,9 @@ class SuperBoundary:
             if contreg.xmaxfit is None:
                 contreg.xmaxfit = xmax
             if contreg.xminuseful is None:
-                contreg.xminuseful = xmin
+                contreg.xminuseful = contreg.xminfit
             if contreg.xmaxuseful is None:
-                contreg.xmaxuseful = xmax
+                contreg.xmaxuseful = contreg.xmaxfit
         self.listboundregions = listboundregions
 
         # generate temporary output file to store the data to be fitted
@@ -412,10 +412,10 @@ class SuperBoundary:
         # perform the individual fits
         for boundreg in listboundregions:
             exec_boundfit(
-                infile=dumfile, medfiltwidth=boundreg.medfiltwidth,
+                infile=dumfile, medfiltwidth=self.medfiltwidth,
                 xmin=boundreg.xminfit, xmax=boundreg.xmaxfit,
                 fittype=3, rescaling='factors',
-                xfactor=boundreg.xfactor, yfactor=boundreg.yfactor,
+                xfactor=self.xfactor, yfactor=self.yfactor,
                 knots=boundreg.knots,
                 crefine=boundreg.crefine, nrefine=boundreg.nrefine,
                 side=boundreg.side,
@@ -493,10 +493,10 @@ class SuperBoundary:
         if ax is None:
             raise ValueError('ax=None is not valid in this function')
 
-        ax.plot(self.xfit, self.yboundary, color='C0', linestyle='--', label='Original data')
+        ax.plot(self.xfit, self.yfit, color='C0', linestyle='-', alpha=0.3, label='Original data')
 
         for ibr, br in enumerate(self.listboundregions):
-            if br.medfiltwidth is not None:
+            if self.medfiltwidth is not None:
                 label = None
                 if ibr == 0:
                     label = 'Fitted data'
@@ -510,6 +510,7 @@ class SuperBoundary:
             ax.plot(xdum[lok], ydum[lok], color=color,
                     label='Continuum region#{}'.format(ibr + 1))
             ax.plot(br.xknot, br.yknot, 'o', color=color, alpha=0.5)
+        ax.plot(self.xfit, self.yboundary, color='k', linestyle='-', label='fitted continuum')
 
         if xmin is not None:
             ax.set_xlim(left=xmin)
