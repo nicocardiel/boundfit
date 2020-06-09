@@ -1,6 +1,7 @@
 import numpy as np
 import os
 from pathlib import Path
+from scipy.interpolate import interp1d
 import subprocess
 
 
@@ -390,17 +391,27 @@ class SuperBoundary:
         self.medfiltwidth = medfiltwidth
         xmin = min(self.xfit)
         xmax = max(self.xfit)
-        for contreg in listboundregions:
-            if not isinstance(contreg, BoundaryDef):
+        self.nbr = len(listboundregions)
+        for ibr in range(self.nbr):
+            br = listboundregions[ibr]
+            if not isinstance(br, BoundaryDef):
                 raise ValueError('Expected BoundaryDef instance not found')
-            if contreg.xminfit is None:
-                contreg.xminfit = xmin
-            if contreg.xmaxfit is None:
-                contreg.xmaxfit = xmax
-            if contreg.xminuseful is None:
-                contreg.xminuseful = contreg.xminfit
-            if contreg.xmaxuseful is None:
-                contreg.xmaxuseful = contreg.xmaxfit
+            if br.xminfit is None:
+                br.xminfit = xmin
+            if br.xmaxfit is None:
+                br.xmaxfit = xmax
+            if br.xminuseful is None:
+                br.xminuseful = br.xminfit
+            if br.xmaxuseful is None:
+                br.xmaxuseful = br.xmaxfit
+            # check boundary regions are given in the right order
+            if ibr > 0:
+                br_prev = listboundregions[ibr-1]
+                if br.xminuseful < br_prev.xminuseful:
+                    raise SystemError('Wrong xminuseful={} for region #{}'.format(br.xminuseful, ibr))
+                if br.xmaxuseful < br_prev.xmaxuseful:
+                    raise SystemError('Wrong xmaxuseful={} for region #{}'.format(br.xmaxuseful, ibr))
+
         self.listboundregions = listboundregions
 
         # generate temporary output file to store the data to be fitted
@@ -410,24 +421,25 @@ class SuperBoundary:
             p.wait()
         np.savetxt(dumfile, np.column_stack([xfit, yfit]))
         # perform the individual fits
-        for boundreg in listboundregions:
+        for br in listboundregions:
             exec_boundfit(
                 infile=dumfile, medfiltwidth=self.medfiltwidth,
-                xmin=boundreg.xminfit, xmax=boundreg.xmaxfit,
+                xmin=br.xminfit, xmax=br.xmaxfit,
                 fittype=3, rescaling='factors',
                 xfactor=self.xfactor, yfactor=self.yfactor,
-                knots=boundreg.knots,
-                crefine=boundreg.crefine, nrefine=boundreg.nrefine,
-                side=boundreg.side,
-                outbasefilename=boundreg.outbasefilename
+                knots=br.knots,
+                crefine=br.crefine, nrefine=br.nrefine,
+                side=br.side,
+                outbasefilename=br.outbasefilename
             )
             filed = 'test_data.bft'
             tablad = np.genfromtxt(filed)
-            boundreg.xfitd = tablad[:, 0]
-            boundreg.yfitd = tablad[:, 1]
+            br.xfitd = tablad[:, 0]
+            br.yfitd = tablad[:, 1]
             filef = 'test_predo.bft'
             tablaf = np.genfromtxt(filef)
-            boundreg.predo = tablaf[:, 1]
+            br.predo = tablaf[:, 1]
+            br.funinterp = interp1d(xfit, br.predo, kind='linear')
             filec = 'test_coeff.bft'
             with open(filec) as f:
                 coeffdata = f.readlines()
@@ -437,34 +449,69 @@ class SuperBoundary:
             for i in range(nknots):
                 xknot.append(float(coeffdata[i + 1].split()[1]))
                 yknot.append(float(coeffdata[i + 1].split()[2]))
-            boundreg.xknot = np.array(xknot)
-            boundreg.yknot = np.array(yknot)
-
+            br.xknot = np.array(xknot)
+            br.yknot = np.array(yknot)
 
         nxvalues = len(self.xfit)
         yboundary = np.zeros(nxvalues, dtype=float)
         nfit = np.zeros(nxvalues, dtype=int)
 
-        # for each xfit value, compute average using the prediction
-        # of all the individual BoundaryRegions
+        # merge different regions into a single continuum (point by point)
         for i in range(nxvalues):
             xdum = self.xfit[i]
-            ydum = 0
-            nydum = 0
-            for boundreg in listboundregions:
-                if boundreg.xminuseful <= xdum <= boundreg.xmaxuseful:
-                    ydum += boundreg.predo[i]
-                    nydum += 1
-            nfit[i] = nydum
-            if nydum > 0:
-                ydum /= nydum
-            yboundary[i] = ydum
-
-        if np.isin(0, nfit):
-            print('WARNING: boundary regions do not overlap')
-            for i in range(nxvalues):
-                if nfit[i] == 0:
-                    print('Pixel #{}, X value={}'.format(i + 1, self.xfit[i]))
+            if xdum < listboundregions[0].xminuseful:
+                # left extrapolation
+                yboundary[i] = listboundregions[0].predo[i]
+            elif xdum > listboundregions[self.nbr-1].xmaxuseful:
+                # right extrapolation
+                yboundary[i] = listboundregions[self.nbr-1].predo[i]
+            else:
+                # interpolation
+                list_br = []
+                ibr_left = -1
+                ibr_right = -1
+                for ibr in range(self.nbr):
+                    br = listboundregions[ibr]
+                    if br.xminuseful <= xdum <= br.xmaxuseful:
+                        list_br.append(ibr)
+                    if br.xmaxuseful < xdum:
+                        ibr_left = ibr
+                    if ibr_right < 0:
+                        if br.xminuseful > xdum:
+                            ibr_right = ibr
+                if len(list_br) == 0:
+                    # no region available for this point (interpolate from left and right regions)
+                    if ibr_left < 0 or ibr_right < 0:
+                        raise SystemError('Unexpected ibr_left={}, ibr_right={} for x={}'.format(
+                            ibr_left, ibr_right, xdum
+                        ))
+                    br_left = listboundregions[ibr_left]
+                    x1 = br_left.xmaxuseful
+                    y1 = br_left.funinterp(x1)
+                    br_right = listboundregions[ibr_right]
+                    x2 = br_right.xminuseful
+                    y2 = br_right.funinterp(x2)
+                    yboundary[i] = y1 + (xdum - x1) * (y2 - y1)/(x2 - x1)
+                elif len(list_br) == 1:
+                    # single region: the easiest case
+                    yboundary[i] = listboundregions[list_br[0]].predo[i]
+                elif len(list_br) == 2:
+                    # two overlapping regions: perform merge
+                    x1 = listboundregions[list_br[1]].xminuseful
+                    x2 = listboundregions[list_br[0]].xmaxuseful
+                    if x1 == x2:
+                        y1 = listboundregions[list_br[0]].funinterp(x1)
+                        y2 = listboundregions[list_br[1]].funinterp(x2)
+                        yboundary[i] = (y1 + y2) / 2
+                    elif x1 > x2:
+                        raise SystemError('Unexpected x1={} > x2={}'.format(x1, x2))
+                    else:
+                        f = (xdum - x1) / (x2 - x1)
+                        y1 = listboundregions[list_br[0]].funinterp(xdum)
+                        y2 = listboundregions[list_br[1]].funinterp(xdum)
+                        yboundary[i] = (1 - f) * y1 + f * y2
+                else:
+                    raise SystemError('Triple overlap for x={}'.format(xdum))
 
         self.yboundary = np.array(yboundary)
         self.nfit = nfit
@@ -473,14 +520,10 @@ class SuperBoundary:
         self.xknot = listboundregions[0].xknot
         self.yknot = listboundregions[0].yknot
         self.knotregion = np.ones_like(self.xknot, dtype=int)
-        if len(listboundregions) > 1:
-            for ireg in range(1, len(listboundregions)):
-                self.xknot = np.concatenate(
-                    (self.xknot, listboundregions[ireg].xknot)
-                )
-                self.yknot = np.concatenate(
-                    (self.yknot, listboundregions[ireg].yknot)
-                )
+        if self.nbr > 1:
+            for ireg in range(1, self.nbr):
+                self.xknot = np.concatenate((self.xknot, listboundregions[ireg].xknot))
+                self.yknot = np.concatenate((self.yknot, listboundregions[ireg].yknot))
                 self.knotregion = np.concatenate(
                     (self.knotregion,
                      np.ones_like(listboundregions[ireg].xknot, dtype=int) * (ireg + 1))
@@ -510,7 +553,7 @@ class SuperBoundary:
             ax.plot(xdum[lok], ydum[lok], color=color,
                     label='Continuum region#{}'.format(ibr + 1))
             ax.plot(br.xknot, br.yknot, 'o', color=color, alpha=0.5)
-        ax.plot(self.xfit, self.yboundary, color='k', linestyle='-', label='fitted continuum')
+        ax.plot(self.xfit, self.yboundary, color='k', linestyle=':', label='fitted continuum')
 
         if xmin is not None:
             ax.set_xlim(left=xmin)
