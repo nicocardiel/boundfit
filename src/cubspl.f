@@ -29,7 +29,7 @@ C and P. O. Wheatley, in Applied Numerical Analysis, 4th edition, pag. 207.
 C The subroutine returns the spline coefficients, where the spline defined
 C in the interval between X(I),Y(I) and X(I+1),Y(I+1) is given by:
 C
-C      Y = A(I)*(X-X(I))**3 + B(I)*(X-X(I))**2 + C(I)*(X-X(I)) + D(I)
+C      Y = A(I)*(X-X(I))**3 + B(I)*(X-X(I))**2 + C(I)*(X-X(I)) + Y(I)
 C
 C REAL X(N) -> X-values to be fitted
 C REAL Y(N) -> Y-values to be fitted

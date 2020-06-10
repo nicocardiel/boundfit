@@ -28,7 +28,7 @@ C The subroutine returns the cubic spline evaluated at X0, using the
 C coefficients determined in a previous call to CUBSPL. The spline defined in 
 C the interval between X(I),Y(I) and X(I+1),Y(I+1) is given by:
 C
-C      Y = A(I)*(X-X(I))**3 + B(I)*(X-X(I))**2 + C(I)*(X-X(I)) + D(I)
+C      Y = A(I)*(X-X(I))**3 + B(I)*(X-X(I))**2 + C(I)*(X-X(I)) + Y(I)
 C
 C If X0.LT.X(1), I=1 is employed (first computed spline)
 C If X0.GT.X(N), I=N-1 is employed (last computed spline)
