@@ -20,7 +20,7 @@ C------------------------------------------------------------------------------
 Comment
 C
 C SUBROUTINE SPLFIT(N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED,
-C                   WEIGHT,POWER,EPOWER,LUP,TSIGMA,
+C                   WEIGHT,POWER,EPOWER,LUP,TSIGMA,RIGIDITY,NRIGIDITY
 C                   NOUT,XOUT,YOUT,XMIN,XMAX,YKNOT,ASPL,BSPL,CSPL)
 C
 C Input: N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED
@@ -49,6 +49,8 @@ C REAL    POWER -> for boundary fitting
 C REAL    EPOWER -> for boundary fitting
 C LOGICAL LUP -> .TRUE. for upper-limit, .FALSE. for lower-limit
 C REAL    TSIGMA -> times sigma for boundary fitting
+C REAL    RIGIDITY -> rigidity factor
+C INTEGER NRIGIDITY -> number of points to sample arc length
 C INTEGER NOUT -> number of points in output
 C REAL    XOUT(NOUT) -> output data
 C REAL    YOUT(NOUT) -> output data
@@ -64,7 +66,7 @@ C------------------------------------------------------------------------------
 C Esta subrutina requiere POLFIT y DOWNHILL
 C         del ajuste final.
         SUBROUTINE SPLFIT(N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED,
-     +   WEIGHT,POWER,EPOWER,LUP,TSIGMA,
+     +   WEIGHT,POWER,EPOWER,LUP,TSIGMA,RIGIDITY,NRIGIDITY,
      +   NOUT,XOUT,YOUT,XMIN,XMAX,YKNOT,ASPL,BSPL,CSPL)
         IMPLICIT NONE
         INCLUDE 'ndatamax.inc'
@@ -89,6 +91,8 @@ C
         REAL EPOWER
         LOGICAL LUP
         REAL TSIGMA
+        REAL RIGIDITY
+        INTEGER NRIGIDITY
         INTEGER NOUT
         REAL XOUT(NOUT),YOUT(NOUT)
         REAL XMIN,XMAX
@@ -108,6 +112,7 @@ C
         INTEGER NDELETE
         INTEGER ND_
         INTEGER INEW
+        INTEGER NNRIGIDITY
         REAL XF(NDATAMAX),YF(NDATAMAX),EYF(NDATAMAX)
         REAL YD(NKNOTSMAX),DYD(NKNOTSMAX)
         REAL MEANF,RMSF
@@ -119,6 +124,7 @@ C
         REAL PPOWER
         REAL EEPOWER
         REAL TTSIGMA
+        REAL RRIGIDITY
         REAL A(4),CHISQR,FDUMMY
         REAL SIGMA
         REAL DELTAX
@@ -145,6 +151,7 @@ C
         COMMON/BLKSPLFUNK6/NREF
         COMMON/BLKSPLFUNK7/WWEIGHT,PPOWER,EEPOWER,TTSIGMA
         COMMON/BLKSPLFUNK8/LLUP
+        COMMON/BLKSPLFUNK9/RRIGIDITY,NNRIGIDITY
 C------------------------------------------------------------------------------
 C Inicializacion (duplicamos argumentos de entrada de la subrutina para
 C poder pasar la informacion mediante COMMON blocks a las funciones)
@@ -153,6 +160,8 @@ C poder pasar la informacion mediante COMMON blocks a las funciones)
         PPOWER=POWER
         EEPOWER=EPOWER
         TTSIGMA=TSIGMA
+        RRIGIDITY=RIGIDITY
+        NNRIGIDITY=NRIGIDITY
         LLUP=LUP
 C------------------------------------------------------------------------------
         NITER=0

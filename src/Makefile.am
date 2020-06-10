@@ -13,6 +13,7 @@ boundfit.f \
 cleantab.f \
 combpf.f \
 cubspl.f \
+cubsplarclength.f \
 cubsplx.f \
 cubsplxp.f \
 downhill.f \

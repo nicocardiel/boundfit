@@ -53,6 +53,7 @@ C variables
         INTEGER NSEED
         INTEGER NDATA
         INTEGER I0SPL
+        INTEGER NRIGIDITY
         REAL XDATA(NDATAMAX),XDATA_SORTED(NDATAMAX)
         REAL XDATA_INITIAL(NDATAMAX)
         REAL YDATA(NDATAMAX)
@@ -63,6 +64,7 @@ C variables
         REAL XMINBUFF,XMAXBUFF
         REAL WEIGHT,POWER,EPOWER
         REAL TSIGMA
+        REAL RIGIDITY
         REAL YRMSTOL
         REAL A(NDEGMAX+1),AA(NDEGMAX+1)
         REAL XKNOT(NKNOTSMAX),YKNOT(NKNOTSMAX)
@@ -472,6 +474,29 @@ C..............................................................................
               LOOP=.FALSE.
             END IF
           END DO
+          LOOP=.TRUE.
+          DO WHILE(LOOP)
+            WRITE(*,100) 'Rigidity factor..............(0=none) '
+            RIGIDITY=READF_B('0.0')
+            IF(LECHO)THEN
+              WRITE(CDUMMY,*) RIGIDITY
+              WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+            END IF
+            IF(RIGIDITY.LT.0.0)THEN
+              WRITE(*,100) 'WARNING: this number must be >= 0.0.'
+              WRITE(*,101) ' Try again!'
+            ELSE
+              LOOP=.FALSE.
+            END IF
+          END DO
+          IF(RIGIDITY.GT.0.0)THEN
+            WRITE(*,100) 'Number of points to sample arc length '
+            NRIGIDITY=READILIM_B('1000',10,1000000)
+            IF(LECHO)THEN
+              WRITE(CDUMMY,*) NRIGIDITY
+              WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+            END IF
+          END IF
           WRITE(*,100) 'Side: 1=upper, 2=lower........'
           ILUP=READILIM_B('1',1,2)
           IF(LECHO)THEN
@@ -507,7 +532,7 @@ C..............................................................................
           !realizamos el ajuste
           CALL SPLFIT(NDATABUFF,XDATA,YDATA,EYDATA,NKNOTS,XKNOT,
      +     YRMSTOL,NEVALMAX,NSEED,
-     +     WEIGHT,POWER,EPOWER,LUP,TSIGMA,
+     +     WEIGHT,POWER,EPOWER,LUP,TSIGMA,RIGIDITY,NRIGIDITY,
      +     NPLOTMAX,XP,YP,XKNOT(1),XKNOT(NKNOTS),YKNOT,ASPL,BSPL,CSPL)
           !deshacemos la normalizacion en los knots y en los coeficientes
           !muestra el ajuste final
