@@ -12,6 +12,7 @@ def exec_boundfit(infile, filemode='ascii',
                   medfiltwidth=1,
                   rescaling=None, xfactor=None, yfactor=None,
                   poldeg=2, knots=None, xi=1000, alfa=2.0, beta=0.0, tau=0.0,
+                  rigidity=0, nrigidity=1000,
                   side=1, yrmstol=1E-5, nmaxiter=1000,
                   crefine=None, nrefine=None,
                   sampling=1000,
@@ -68,6 +69,12 @@ def exec_boundfit(infile, filemode='ascii',
         Power for errors.
     tau : float
         Cut-off parameter for errors.
+    rigidity : float
+        Rigidity factor: forces the fit to minimize also the arc
+        length (only for fittype=3).
+    nrigidity : int
+        Number of points to sample the X range in order to estimate
+        the arc length (only for fittype=3 and rigidity>0.0).
     side : int
         Boundary side: 1 for upper- and 2 for lower-boundary fits.
     yrmstol : float
@@ -240,6 +247,9 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(alfa)      # Power for distances
         pwrite(beta)      # Power for errors
         pwrite(tau)       # Cut-off parameter for errors (tau)
+        pwrite(rigidity)  # Rigidity factor (0=none)
+        if rigidity > 0:  # Number of points to sample arc length
+            pwrite(nrigidity)
         pwrite(side)      # Side: 1=upper, 2=lower
         pwrite(yrmstol)   # YRMSTOL for coefficients
         pwrite(nmaxiter)  # Nmaxiter
@@ -326,6 +336,12 @@ class BoundaryDef:
     knots : integer or array-like object
         Total number of knots (single number) or array with
         intermediate knot location.
+    rigidity : float
+        Rigidity factor: forces the fit to minimize also the arc
+        length (only for fittype=3).
+    nrigidity : int
+        Number of points to sample the X range in order to estimate
+        the arc length (only for fittype=3 and rigidity>0.0).
     crefine : str
         Type of refinement: 'XY' refine both X and Y location of
         each knot, whereas 'Y' refines only in the Y direction.
@@ -345,7 +361,9 @@ class BoundaryDef:
     def __init__(self,
                  xminfit=None, xmaxfit=None,
                  xminuseful=None, xmaxuseful=None,
-                 knots=None, crefine=None,
+                 knots=None,
+                 rigidity=0.0, nrigidity=1000,
+                 crefine=None,
                  nrefine=100, side=1, outbasefilename='test'):
 
         self.xminfit = xminfit
@@ -353,6 +371,8 @@ class BoundaryDef:
         self.xminuseful = xminuseful
         self.xmaxuseful = xmaxuseful
         self.knots = knots
+        self.rigidity = rigidity
+        self.nrigidity = nrigidity
         self.crefine = crefine
         self.nrefine = nrefine
         self.side = side
@@ -453,6 +473,7 @@ class SuperBoundary:
                 xfactor=self.xfactor, yfactor=self.yfactor,
                 knots=br.knots,
                 alfa=1.0, beta=beta,
+                rigidity=br.rigidity, nrigidity=br.nrigidity,
                 crefine=br.crefine, nrefine=br.nrefine,
                 side=br.side,
                 outbasefilename=br.outbasefilename
