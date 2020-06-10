@@ -6,7 +6,7 @@ import subprocess
 
 
 def exec_boundfit(infile, filemode='ascii',
-                  xcol=1, ycol=2,
+                  xcol=1, ycol=2, eycol=None,
                   fittype=None,
                   xmin=None, xmax=None,
                   medfiltwidth=1,
@@ -29,6 +29,8 @@ def exec_boundfit(infile, filemode='ascii',
         Column number corresponding to X data.
     ycol : integer
         Column number corresponding to Y data.
+    eycol : integer or None
+        Column number corresponding to EY data (errors).
     fittype : int
         It must be one of the following:
         1: Simple polynomial (generic version)
@@ -163,8 +165,11 @@ def exec_boundfit(infile, filemode='ascii',
     pwrite(0)         # No. of initial rows to be skipped
     pwrite(0)         # No. of rows to be read (0=ALL)
     pwrite(xcol)      # Column No. for X data    
-    pwrite(ycol)      # Column No. for Y data    
-    pwrite(0)         # Column No. for err(Y) data (0=NONE)
+    pwrite(ycol)      # Column No. for Y data
+    if eycol is None: # Column No. for err(Y) data (0=None)
+        pwrite(0)
+    else:
+        pwrite(eycol)
     pwrite('n')       # Using the whole x-range
     
     # Xmin?
@@ -304,8 +309,6 @@ class BoundaryDef:
     """
     Auxiliary class to store parameters to fit a single boundary.
 
-    Note: fittype=3 (adaptive splines) is used when calling exec_boundfit()
-
     Parameters
     ----------
     xminfit : float
@@ -360,13 +363,17 @@ class SuperBoundary:
     """
     Merge boundary regions previously defined with BoundDef.
 
+    Note: fittype=3 (adaptive splines) is used when calling exec_boundfit()
+
     Parameters
     ----------
     xfit : 1D array-like object
         X values to be fitted.
     yfit : 1D array-like object
         Y values to be fitted.
-    listboundregions : list of BoundaryDef objects
+    eyfit : 1D array-like object or None
+        EY values to be used in the fit.
+    listboundregions : list of BoundaryDef objects or None
         List with BoundaryDef instances providing the required
         parameters to be employed to fit each individual boundary.
     xfactor : float or None
@@ -382,10 +389,16 @@ class SuperBoundary:
 
     """
 
-    def __init__(self, xfit, yfit, listboundregions,
+    def __init__(self, xfit, yfit, eyfit=None, listboundregions=None,
                  xfactor=None, yfactor=None, medfiltwidth=None):
+        if listboundregions is None:
+            raise SystemError('listboundregions=None')
         self.xfit = np.asarray(xfit)
         self.yfit = np.asarray(yfit)
+        if eyfit is None:
+            self.eyfit = None
+        else:
+            self.eyfit = np.asarray(eyfit)
         self.xfactor = xfactor
         self.yfactor = yfactor
         self.medfiltwidth = medfiltwidth
@@ -419,15 +432,27 @@ class SuperBoundary:
         if os.path.exists(dumfile):
             p = subprocess.Popen('rm ' + dumfile, shell=True)
             p.wait()
-        np.savetxt(dumfile, np.column_stack([xfit, yfit]))
+        xcol = 1
+        ycol = 2
+        if eyfit is None:
+            np.savetxt(dumfile, np.column_stack([xfit, yfit]))
+            eycol = None
+            beta = 0
+        else:
+            np.savetxt(dumfile, np.column_stack([xfit, yfit, eyfit]))
+            eycol = 3
+            beta = 2
         # perform the individual fits
         for br in listboundregions:
             exec_boundfit(
-                infile=dumfile, medfiltwidth=self.medfiltwidth,
+                infile=dumfile,
+                xcol=xcol, ycol=ycol, eycol=eycol,
+                medfiltwidth=self.medfiltwidth,
                 xmin=br.xminfit, xmax=br.xmaxfit,
                 fittype=3, rescaling='factors',
                 xfactor=self.xfactor, yfactor=self.yfactor,
                 knots=br.knots,
+                alfa=1.0, beta=beta,
                 crefine=br.crefine, nrefine=br.nrefine,
                 side=br.side,
                 outbasefilename=br.outbasefilename
