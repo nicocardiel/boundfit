@@ -335,7 +335,16 @@ class BoundaryDef:
         fitted boundary. None indicates that no restriction is applied.
     knots : integer or array-like object
         Total number of knots (single number) or array with
-        intermediate knot location.
+        intermediate knot location. If zero, no spline fit is performed
+        and the original data is returned.
+    xi : float
+        Asymmetry coefficient.
+    alfa : float
+        Power for distances.
+    beta : float
+        Power for errors.
+    tau : float
+        Cut-off parameter for errors.
     rigidity : float
         Rigidity factor: forces the fit to minimize also the arc
         length (only for fittype=3).
@@ -362,6 +371,7 @@ class BoundaryDef:
                  xminfit=None, xmaxfit=None,
                  xminuseful=None, xmaxuseful=None,
                  knots=None,
+                 xi=1000.0, alfa=2.0, beta=0.0, tau=0.0,
                  rigidity=0.0, nrigidity=1000,
                  crefine=None,
                  nrefine=100, side=1, outbasefilename='test'):
@@ -371,6 +381,10 @@ class BoundaryDef:
         self.xminuseful = xminuseful
         self.xmaxuseful = xmaxuseful
         self.knots = knots
+        self.xi = xi
+        self.alfa = alfa
+        self.beta = beta
+        self.tau = tau
         self.rigidity = rigidity
         self.nrigidity = nrigidity
         self.crefine = crefine
@@ -457,27 +471,60 @@ class SuperBoundary:
         if eyfit is None:
             np.savetxt(dumfile, np.column_stack([xfit, yfit]))
             eycol = None
-            beta = 0
         else:
             np.savetxt(dumfile, np.column_stack([xfit, yfit, eyfit]))
             eycol = 3
-            beta = 2
         # perform the individual fits
         for br in listboundregions:
-            exec_boundfit(
-                infile=dumfile,
-                xcol=xcol, ycol=ycol, eycol=eycol,
-                medfiltwidth=self.medfiltwidth,
-                xmin=br.xminfit, xmax=br.xmaxfit,
-                fittype=3, rescaling='factors',
-                xfactor=self.xfactor, yfactor=self.yfactor,
-                knots=br.knots,
-                alfa=1.0, beta=beta,
-                rigidity=br.rigidity, nrigidity=br.nrigidity,
-                crefine=br.crefine, nrefine=br.nrefine,
-                side=br.side,
-                outbasefilename=br.outbasefilename
-            )
+            if br.knots == 0:
+                # do not fit: return original data
+                xknot = []
+                yknot = []
+                xlast = None
+                ylast = None
+                with open('test_data.bft', 'wt') as f:
+                    for xdum, ydum in zip(xfit, yfit):
+                        if br.xminfit <= xdum <= br.xmaxfit:
+                            f.write('{:e}  {:e}\n'.format(xdum, ydum))
+                            if len(xknot) == 0:
+                                xknot = [xdum]
+                                yknot = [ydum]
+                            xlast = xdum
+                            ylast = ydum
+                xknot.append(xlast)
+                yknot.append(ylast)
+                br.xknot = np.array(xknot)
+                br.yknot = np.array(yknot)
+                np.savetxt('test_predo.bft', np.column_stack([xfit, yfit]))
+            elif br.knots >= 2:
+                # spline fit
+                exec_boundfit(
+                    infile=dumfile,
+                    xcol=xcol, ycol=ycol, eycol=eycol,
+                    medfiltwidth=self.medfiltwidth,
+                    xmin=br.xminfit, xmax=br.xmaxfit,
+                    fittype=3, rescaling='factors',
+                    xfactor=self.xfactor, yfactor=self.yfactor,
+                    knots=br.knots,
+                    xi=br.xi, alfa=br.alfa, beta=br.beta, tau=br.tau,
+                    rigidity=br.rigidity, nrigidity=br.nrigidity,
+                    crefine=br.crefine, nrefine=br.nrefine,
+                    side=br.side,
+                    outbasefilename=br.outbasefilename
+                )
+                filec = 'test_coeff.bft'
+                with open(filec) as f:
+                    coeffdata = f.readlines()
+                nknots = int(coeffdata[0].split()[0])
+                xknot = []
+                yknot = []
+                for i in range(nknots):
+                    xknot.append(float(coeffdata[i + 1].split()[1]))
+                    yknot.append(float(coeffdata[i + 1].split()[2]))
+                br.xknot = np.array(xknot)
+                br.yknot = np.array(yknot)
+            else:
+                raise SystemError('Invalid knots: {}'.format(br.knots))
             filed = 'test_data.bft'
             tablad = np.genfromtxt(filed)
             br.xfitd = tablad[:, 0]
@@ -486,17 +533,6 @@ class SuperBoundary:
             tablaf = np.genfromtxt(filef)
             br.predo = tablaf[:, 1]
             br.funinterp = interp1d(xfit, br.predo, kind='linear')
-            filec = 'test_coeff.bft'
-            with open(filec) as f:
-                coeffdata = f.readlines()
-            nknots = int(coeffdata[0].split()[0])
-            xknot = []
-            yknot = []
-            for i in range(nknots):
-                xknot.append(float(coeffdata[i + 1].split()[1]))
-                yknot.append(float(coeffdata[i + 1].split()[2]))
-            br.xknot = np.array(xknot)
-            br.yknot = np.array(yknot)
 
         nxvalues = len(self.xfit)
         yboundary = np.zeros(nxvalues, dtype=float)
