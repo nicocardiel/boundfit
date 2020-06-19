@@ -11,7 +11,7 @@ def exec_boundfit(infile, filemode='ascii',
                   xmin=None, xmax=None,
                   medfiltwidth=1,
                   rescaling=None, xfactor=None, yfactor=None,
-                  poldeg=2, knots=None, xi=1000, alfa=2.0, beta=0.0, tau=0.0,
+                  poldeg=2, knots=None, xi=1000, alpha=2.0, beta=0.0, tau=0.0,
                   rigidity=0, nrigidity=1000,
                   side=1, yrmstol=1E-5, nmaxiter=1000,
                   crefine=None, nrefine=None,
@@ -63,7 +63,7 @@ def exec_boundfit(infile, filemode='ascii',
         using fittype=3.
     xi : float
         Asymmetry coefficient.
-    alfa : float
+    alpha : float
         Power for distances.
     beta : float
         Power for errors.
@@ -166,14 +166,14 @@ def exec_boundfit(infile, filemode='ascii',
     )
     
     def pwrite(value):
-        p.stdin.write(str(value) + '\n')
+        p.stdin.write('{}\n'.format(str(value)))
         
-    pwrite(infile)    # Input data file name
-    pwrite(0)         # No. of initial rows to be skipped
-    pwrite(0)         # No. of rows to be read (0=ALL)
-    pwrite(xcol)      # Column No. for X data    
-    pwrite(ycol)      # Column No. for Y data
-    if eycol is None: # Column No. for err(Y) data (0=None)
+    pwrite(infile)     # Input data file name
+    pwrite(0)          # No. of initial rows to be skipped
+    pwrite(0)          # No. of rows to be read (0=ALL)
+    pwrite(xcol)       # Column No. for X data
+    pwrite(ycol)       # Column No. for Y data
+    if eycol is None:  # Column No. for err(Y) data (0=None)
         pwrite(0)
     else:
         pwrite(eycol)
@@ -216,7 +216,7 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(poldeg)    # Polynomial degree
         pwrite(xi)        # Asymmetry coefficient (xi)
         if fittype == 1:
-            pwrite(alfa)  # Power for distances
+            pwrite(alpha)  # Power for distances
             pwrite(beta)  # Power for errors
         if fittype == 2:
             pwrite('n')   # Weighting with errors
@@ -244,7 +244,7 @@ def exec_boundfit(infile, filemode='ascii',
         elif type(knots) is int:
             pwrite('y')   # Equidistant knot arrangement
         pwrite(xi)        # Asymmetry coefficient (xi)
-        pwrite(alfa)      # Power for distances
+        pwrite(alpha)      # Power for distances
         pwrite(beta)      # Power for errors
         pwrite(tau)       # Cut-off parameter for errors (tau)
         pwrite(rigidity)  # Rigidity factor (0=none)
@@ -339,7 +339,7 @@ class BoundaryDef:
         and the original data is returned.
     xi : float
         Asymmetry coefficient.
-    alfa : float
+    alpha : float
         Power for distances.
     beta : float
         Power for errors.
@@ -371,7 +371,7 @@ class BoundaryDef:
                  xminfit=None, xmaxfit=None,
                  xminuseful=None, xmaxuseful=None,
                  knots=None,
-                 xi=1000.0, alfa=2.0, beta=0.0, tau=0.0,
+                 xi=1000.0, alpha=2.0, beta=0.0, tau=0.0,
                  rigidity=0.0, nrigidity=1000,
                  crefine=None,
                  nrefine=100, side=1, outbasefilename='test'):
@@ -382,7 +382,7 @@ class BoundaryDef:
         self.xmaxuseful = xmaxuseful
         self.knots = knots
         self.xi = xi
-        self.alfa = alfa
+        self.alpha = alpha
         self.beta = beta
         self.tau = tau
         self.rigidity = rigidity
@@ -506,7 +506,7 @@ class SuperBoundary:
                     fittype=3, rescaling='factors',
                     xfactor=self.xfactor, yfactor=self.yfactor,
                     knots=br.knots,
-                    xi=br.xi, alfa=br.alfa, beta=br.beta, tau=br.tau,
+                    xi=br.xi, alpha=br.alpha, beta=br.beta, tau=br.tau,
                     rigidity=br.rigidity, nrigidity=br.nrigidity,
                     crefine=br.crefine, nrefine=br.nrefine,
                     side=br.side,
