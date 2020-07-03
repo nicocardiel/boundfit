@@ -652,3 +652,10 @@ class SuperBoundary:
         if title is not None:
             ax.set_title(title)
         ax.legend()
+
+    def save_ascii(self, fname, normalize=False):
+        if normalize:
+            meanvalue = np.mean(self.yboundary)
+        else:
+            meanvalue = 1.0
+        np.savetxt(fname, np.column_stack([self.xfit, self.yboundary/meanvalue]))
