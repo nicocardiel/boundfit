@@ -12,7 +12,7 @@ def exec_boundfit(infile, filemode='ascii',
                   medfiltwidth=1,
                   rescaling=None, xfactor=None, yfactor=None,
                   poldeg=2, knots=None, xi=1000, alpha=2.0, beta=0.0, tau=0.0,
-                  rigidity=0, nrigidity=1000,
+                  imode=1, rigidity=0, nrigidity=1000,
                   side=1, yrmstol=1E-5, nmaxiter=1000,
                   crefine=None, nrefine=None,
                   sampling=1000,
@@ -69,6 +69,9 @@ def exec_boundfit(infile, filemode='ascii',
         Power for errors.
     tau : float
         Cut-off parameter for errors.
+    imode : int
+        End conditions mode for spline fit (see cubspl.f for details).
+        A value equal to 1 indicates the use of natural splines.
     rigidity : float
         Rigidity factor: forces the fit to minimize also the arc
         length (only for fittype=3).
@@ -250,6 +253,7 @@ def exec_boundfit(infile, filemode='ascii',
         pwrite(rigidity)  # Rigidity factor (0=none)
         if rigidity > 0:  # Number of points to sample arc length
             pwrite(nrigidity)
+        pwrite(imode)     # IMODE (end conditions mode)
         pwrite(side)      # Side: 1=upper, 2=lower
         pwrite(yrmstol)   # YRMSTOL for coefficients
         pwrite(nmaxiter)  # Nmaxiter
@@ -424,7 +428,7 @@ class SuperBoundary:
     """
 
     def __init__(self, xfit, yfit, eyfit=None, listboundregions=None,
-                 xfactor=None, yfactor=None, medfiltwidth=None):
+                 xfactor=None, yfactor=None, medfiltwidth=None, imode=1):
         if listboundregions is None:
             raise SystemError('listboundregions=None')
         self.xfit = np.asarray(xfit)
@@ -436,6 +440,7 @@ class SuperBoundary:
         self.xfactor = xfactor
         self.yfactor = yfactor
         self.medfiltwidth = medfiltwidth
+        self.imode = imode
         xmin = min(self.xfit)
         xmax = max(self.xfit)
         self.nbr = len(listboundregions)
@@ -507,6 +512,7 @@ class SuperBoundary:
                     xfactor=self.xfactor, yfactor=self.yfactor,
                     knots=br.knots,
                     xi=br.xi, alpha=br.alpha, beta=br.beta, tau=br.tau,
+                    imode=self.imode,
                     rigidity=br.rigidity, nrigidity=br.nrigidity,
                     crefine=br.crefine, nrefine=br.nrefine,
                     side=br.side,

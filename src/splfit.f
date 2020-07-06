@@ -20,7 +20,7 @@ C------------------------------------------------------------------------------
 Comment
 C
 C SUBROUTINE SPLFIT(N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED,
-C                   WEIGHT,POWER,EPOWER,LUP,TSIGMA,RIGIDITY,NRIGIDITY
+C                   WEIGHT,POWER,EPOWER,LUP,TSIGMA,IMODE,RIGIDITY,NRIGIDITY
 C                   NOUT,XOUT,YOUT,XMIN,XMAX,YKNOT,ASPL,BSPL,CSPL)
 C
 C Input: N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED
@@ -49,6 +49,7 @@ C REAL    POWER -> for boundary fitting
 C REAL    EPOWER -> for boundary fitting
 C LOGICAL LUP -> .TRUE. for upper-limit, .FALSE. for lower-limit
 C REAL    TSIGMA -> times sigma for boundary fitting
+C INTEGER IMODE -> end conditions (see cubspl.f for details)
 C REAL    RIGIDITY -> rigidity factor
 C INTEGER NRIGIDITY -> number of points to sample arc length
 C INTEGER NOUT -> number of points in output
@@ -66,7 +67,7 @@ C------------------------------------------------------------------------------
 C Esta subrutina requiere POLFIT y DOWNHILL
 C         del ajuste final.
         SUBROUTINE SPLFIT(N,X,Y,EY,ND,XD,YRMSTOL,NEVALMAX,NSEED,
-     +   WEIGHT,POWER,EPOWER,LUP,TSIGMA,RIGIDITY,NRIGIDITY,
+     +   WEIGHT,POWER,EPOWER,LUP,TSIGMA,IMODE,RIGIDITY,NRIGIDITY,
      +   NOUT,XOUT,YOUT,XMIN,XMAX,YKNOT,ASPL,BSPL,CSPL)
         IMPLICIT NONE
         INCLUDE 'ndatamax.inc'
@@ -91,6 +92,7 @@ C
         REAL EPOWER
         LOGICAL LUP
         REAL TSIGMA
+        INTEGER IMODE
         REAL RIGIDITY
         INTEGER NRIGIDITY
         INTEGER NOUT
@@ -112,6 +114,7 @@ C
         INTEGER NDELETE
         INTEGER ND_
         INTEGER INEW
+        INTEGER IIMODE
         INTEGER NNRIGIDITY
         REAL XF(NDATAMAX),YF(NDATAMAX),EYF(NDATAMAX)
         REAL YD(NKNOTSMAX),DYD(NKNOTSMAX)
@@ -151,7 +154,7 @@ C
         COMMON/BLKSPLFUNK6/NREF
         COMMON/BLKSPLFUNK7/WWEIGHT,PPOWER,EEPOWER,TTSIGMA
         COMMON/BLKSPLFUNK8/LLUP
-        COMMON/BLKSPLFUNK9/RRIGIDITY,NNRIGIDITY
+        COMMON/BLKSPLFUNK9/IIMODE,RRIGIDITY,NNRIGIDITY
 C------------------------------------------------------------------------------
 C Inicializacion (duplicamos argumentos de entrada de la subrutina para
 C poder pasar la informacion mediante COMMON blocks a las funciones)
@@ -160,6 +163,7 @@ C poder pasar la informacion mediante COMMON blocks a las funciones)
         PPOWER=POWER
         EEPOWER=EPOWER
         TTSIGMA=TSIGMA
+        IIMODE=IMODE
         RRIGIDITY=RIGIDITY
         NNRIGIDITY=NRIGIDITY
         LLUP=LUP
@@ -226,7 +230,7 @@ C ajuste inicial a polinomios de grado 2 a cada region entre cada 2 knots
           YD(I)=YD(I)/2. !en el resto hay dos estimaciones que promediamos
         END DO
 C ajustamos los splines que pasan por los knots iniciales
-        CALL CUBSPL(XD,YD,ND,1,SSPL,ASPL,BSPL,CSPL)                    !IMODE=1
+        CALL CUBSPL(XD,YD,ND,IMODE,SSPL,ASPL,BSPL,CSPL)
         I0SPL=1                  !la primera vez busca en el inicio de la tabla
         DO K=1,NOUT
           CALL CUBSPLX(XD,YD,ASPL,BSPL,CSPL,ND,I0SPL,XOUT(K),YOUT(K))
@@ -295,7 +299,7 @@ C llamamos a DOWNHILL y minimizamos la posicion en Y de todos los knots
 !         print*,'downhill_2> ',j,xx(j),dxx(j)
         END DO
         SIGMA=SQRT(YFUNK_SPLFIT(YD))
-20      CALL CUBSPL(XD,YD,ND,1,SSPL,ASPL,BSPL,CSPL)                    !IMODE=1
+20      CALL CUBSPL(XD,YD,ND,IMODE,SSPL,ASPL,BSPL,CSPL)
         I0SPL=1                  !la primera vez busca en el inicio de la tabla
         DO K=1,NOUT
           CALL CUBSPLX(XD,YD,ASPL,BSPL,CSPL,ND,I0SPL,XOUT(K),YOUT(K))

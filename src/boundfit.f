@@ -49,6 +49,7 @@ C variables
         INTEGER ILUP
         INTEGER NEVALMAX
         INTEGER IKNOT,NKNOTS
+        INTEGER IMODE
         INTEGER IDUM
         INTEGER NSEED
         INTEGER NDATA
@@ -497,6 +498,12 @@ C..............................................................................
               WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
             END IF
           END IF
+          WRITE(*,100) 'IMODE (1, 2, or 3)............'
+          IMODE=READILIM_B('1',1,3)
+          IF(LECHO)THEN
+            WRITE(CDUMMY,*) IMODE
+            WRITE(*,101) CDUMMY(TRUEBEG(CDUMMY):TRUELEN(CDUMMY))
+          END IF
           WRITE(*,100) 'Side: 1=upper, 2=lower........'
           ILUP=READILIM_B('1',1,2)
           IF(LECHO)THEN
@@ -532,7 +539,7 @@ C..............................................................................
           !realizamos el ajuste
           CALL SPLFIT(NDATABUFF,XDATA,YDATA,EYDATA,NKNOTS,XKNOT,
      +     YRMSTOL,NEVALMAX,NSEED,
-     +     WEIGHT,POWER,EPOWER,LUP,TSIGMA,RIGIDITY,NRIGIDITY,
+     +     WEIGHT,POWER,EPOWER,LUP,TSIGMA,IMODE,RIGIDITY,NRIGIDITY,
      +     NPLOTMAX,XP,YP,XKNOT(1),XKNOT(NKNOTS),YKNOT,ASPL,BSPL,CSPL)
           !deshacemos la normalizacion en los knots y en los coeficientes
           !muestra el ajuste final

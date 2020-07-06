@@ -29,6 +29,7 @@ C
         INTEGER NF,ND
         INTEGER I0
         INTEGER NFIXED_F,NFIXED_D
+        INTEGER IMODE
         INTEGER NRIGIDITY
         REAL XF(NDATAMAX),YF(NDATAMAX),EYF(NDATAMAX),YF0
         REAL XFIXED_F(NFIXEDMAX),YFIXED_F(NFIXEDMAX)
@@ -48,7 +49,7 @@ C
         COMMON/BLKSPLFUNK4/XDD
         COMMON/BLKSPLFUNK7/WEIGHT,POWER,EPOWER,TSIGMA
         COMMON/BLKSPLFUNK8/LUP
-        COMMON/BLKSPLFUNK9/RIGIDITY,NRIGIDITY
+        COMMON/BLKSPLFUNK9/IMODE,RIGIDITY,NRIGIDITY
         COMMON/BLKFIXED1/NFIXED_F,NFIXED_D
         COMMON/BLKFIXED2F/XFIXED_F,YFIXED_F
         COMMON/BLKFIXED2D/XFIXED_D,YFIXED_D
@@ -62,7 +63,7 @@ C comprobacion inicial
           STOP
         END IF
 C------------------------------------------------------------------------------
-        CALL CUBSPL(XDD,X,ND,1,S,A,B,C)                                !IMODE=1
+        CALL CUBSPL(XDD,X,ND,IMODE,S,A,B,C)
 C------------------------------------------------------------------------------
         IF(TSIGMA.EQ.0.0)THEN !.....................................sin errores
           IF(LUP)THEN
