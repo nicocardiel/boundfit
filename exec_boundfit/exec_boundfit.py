@@ -385,6 +385,15 @@ class BoundaryDef:
         self.xminuseful = xminuseful
         self.xmaxuseful = xmaxuseful
         self.knots = knots
+        if isinstance(knots, np.ndarray):
+            nknots = len(knots) + 2
+        elif isinstance(knots, list):
+            nknots = len(knots) + 2
+        elif isinstance(knots, int):
+            nknots = knots
+        else:
+            nknots = None
+        self.nknots = nknots
         self.xi = xi
         self.alpha = alpha
         self.beta = beta
@@ -481,7 +490,7 @@ class SuperBoundary:
             eycol = 3
         # perform the individual fits
         for br in listboundregions:
-            if br.knots == 0:
+            if br.nknots == 0:
                 # do not fit: return original data
                 xknot = []
                 yknot = []
@@ -501,7 +510,7 @@ class SuperBoundary:
                 br.xknot = np.array(xknot)
                 br.yknot = np.array(yknot)
                 np.savetxt('test_predo.bft', np.column_stack([xfit, yfit]))
-            elif br.knots >= 2:
+            elif br.nknots >= 2:
                 # spline fit
                 exec_boundfit(
                     infile=dumfile,
@@ -530,7 +539,7 @@ class SuperBoundary:
                 br.xknot = np.array(xknot)
                 br.yknot = np.array(yknot)
             else:
-                raise SystemError('Invalid knots: {}'.format(br.knots))
+                raise SystemError('Invalid knots: {}'.format(br.nknots))
             filed = 'test_data.bft'
             tablad = np.genfromtxt(filed)
             br.xfitd = tablad[:, 0]
