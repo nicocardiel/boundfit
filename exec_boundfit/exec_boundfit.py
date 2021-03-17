@@ -16,7 +16,8 @@ def exec_boundfit(infile, filemode='ascii',
                   side=1, yrmstol=1E-5, nmaxiter=1000,
                   crefine=None, nrefine=None,
                   sampling=1000,
-                  outbasefilename=None, verbosity=0):
+                  outbasefilename=None, workdir='.',
+                  verbosity=0):
     """Execute boundfit
 
     Parameters
@@ -104,6 +105,8 @@ def exec_boundfit(infile, filemode='ascii',
           original data set (including points outside fitted range)
         - _coeff.bfg: fitted coefficients
         - .log: execution log containing the terminal output
+    workdir : str
+        Working directory to store temporary files.
     verbosity : int
         Verbosity level:
         - 0: none
@@ -142,6 +145,7 @@ def exec_boundfit(infile, filemode='ascii',
     # determine output file names
     if outbasefilename is None:
         outbasefilename = Path(infile).stem
+    outbasefilename = f'{workdir}/{outbasefilename}'
     outfile0 = outbasefilename + '_data.bft'
     outfile1 = outbasefilename + '_linfit.bft'
     outfile2 = outbasefilename + '_predf.bft'
@@ -429,6 +433,11 @@ class SuperBoundary:
         Multiplicative factor for Y data.
     medfiltwidth : int
         Window size for median filtering (1=no filtering).
+    imode : int
+        End conditions mode. See cubspl.f for details
+        (imode=1: for natural spline)
+    workdir : str
+        Working directory to store temporary files.
 
     Attributes
     ----------
@@ -437,7 +446,8 @@ class SuperBoundary:
     """
 
     def __init__(self, xfit, yfit, eyfit=None, listboundregions=None,
-                 xfactor=None, yfactor=None, medfiltwidth=None, imode=1):
+                 xfactor=None, yfactor=None, medfiltwidth=None, imode=1,
+                 workdir='.'):
         if listboundregions is None:
             raise SystemError('listboundregions=None')
         self.xfit = np.asarray(xfit)
@@ -450,6 +460,7 @@ class SuperBoundary:
         self.yfactor = yfactor
         self.medfiltwidth = medfiltwidth
         self.imode = imode
+        self.workdir = workdir
         xmin = min(self.xfit)
         xmax = max(self.xfit)
         self.nbr = len(listboundregions)
@@ -476,7 +487,7 @@ class SuperBoundary:
         self.listboundregions = listboundregions
 
         # generate temporary output file to store the data to be fitted
-        dumfile = 'test_tmp.dat'
+        dumfile = f'{workdir}/test_tmp.dat'
         if os.path.exists(dumfile):
             p = subprocess.Popen('rm ' + dumfile, shell=True)
             p.wait()
@@ -496,7 +507,7 @@ class SuperBoundary:
                 yknot = []
                 xlast = None
                 ylast = None
-                with open('test_data.bft', 'wt') as f:
+                with open(f'{workdir}./test_data.bft', 'wt') as f:
                     for xdum, ydum in zip(xfit, yfit):
                         if br.xminfit <= xdum <= br.xmaxfit:
                             f.write('{:e}  {:e}\n'.format(xdum, ydum))
@@ -509,7 +520,7 @@ class SuperBoundary:
                 yknot.append(ylast)
                 br.xknot = np.array(xknot)
                 br.yknot = np.array(yknot)
-                np.savetxt('test_predo.bft', np.column_stack([xfit, yfit]))
+                np.savetxt(f'{workdir}/test_predo.bft', np.column_stack([xfit, yfit]))
             elif br.nknots >= 2:
                 # spline fit
                 exec_boundfit(
@@ -525,9 +536,10 @@ class SuperBoundary:
                     rigidity=br.rigidity, nrigidity=br.nrigidity,
                     crefine=br.crefine, nrefine=br.nrefine,
                     side=br.side,
-                    outbasefilename=br.outbasefilename
+                    outbasefilename=br.outbasefilename,
+                    workdir=workdir
                 )
-                filec = 'test_coeff.bft'
+                filec = f'{workdir}/test_coeff.bft'
                 with open(filec) as f:
                     coeffdata = f.readlines()
                 nknots = int(coeffdata[0].split()[0])
@@ -540,11 +552,11 @@ class SuperBoundary:
                 br.yknot = np.array(yknot)
             else:
                 raise SystemError('Invalid knots: {}'.format(br.nknots))
-            filed = 'test_data.bft'
+            filed = f'{workdir}/test_data.bft'
             tablad = np.genfromtxt(filed)
             br.xfitd = tablad[:, 0]
             br.yfitd = tablad[:, 1]
-            filef = 'test_predo.bft'
+            filef = f'{workdir}/test_predo.bft'
             tablaf = np.genfromtxt(filef)
             br.predo = tablaf[:, 1]
             br.funinterp = interp1d(xfit, br.predo, kind='linear')
