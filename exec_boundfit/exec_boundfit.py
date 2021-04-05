@@ -640,7 +640,8 @@ class SuperBoundary:
 
     def plot(self, ax=None,
              xmin=None, xmax=None, ymin=None, ymax=None,
-             xlabel=None, ylabel=None, title=None):
+             xlabel=None, ylabel=None, title=None, 
+             print_xknots=False):
 
         if ax is None:
             raise ValueError('ax=None is not valid in this function')
@@ -662,6 +663,8 @@ class SuperBoundary:
             ax.plot(xdum[lok], ydum[lok], color=color,
                     label='Continuum region#{}'.format(ibr + 1))
             ax.plot(br.xknot, br.yknot, 'o', color=color, alpha=0.5)
+            if print_xknots:
+                print(repr(br.xknot))
         ax.plot(self.xfit, self.yboundary, color='k', linestyle=':', label='fitted continuum')
 
         if xmin is not None:
