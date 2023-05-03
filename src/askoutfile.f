@@ -46,7 +46,7 @@ C------------------------------------------------------------------------------
           INQUIRE(FILE=OUTFILE,EXIST=LOGFILE)
           IF(LOGFILE)THEN
             WRITE(*,101) 'WARNING: this file already exist!'
-            WRITE(*,100) 'Do you want to overwrite it (y/n)'
+            WRITE(*,100) 'Do you want to overwrite it (y/n) '
             COVERWRITE=READC_B('n', 'yn')
             IF(LECHO) WRITE(*,101) COVERWRITE
             IF((COVERWRITE.EQ.'y').OR.(COVERWRITE.EQ.'Y'))THEN
