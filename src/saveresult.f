@@ -25,6 +25,7 @@ C
         INTEGER I
         INTEGER NDATA
         REAL XP(NDATAMAX),YP(NDATAMAX)
+        CHARACTER*3 FSTATUS
         CHARACTER*255 OUTFILE
         LOGICAL LECHO
 C
@@ -32,9 +33,9 @@ C
         COMMON/BLKOUT_NDATA/NDATA
         COMMON/BLKOUT_XY/XP,YP
 C------------------------------------------------------------------------------
-        CALL ASKOUTFILE(OUTFILE)
+        CALL ASKOUTFILE(OUTFILE,FSTATUS)
 C
-        OPEN(20,FILE=OUTFILE,STATUS='NEW',FORM='FORMATTED')
+        OPEN(20,FILE=OUTFILE,STATUS=FSTATUS,FORM='FORMATTED')
         DO I=1,NDATA
           WRITE(20,*) XP(I),YP(I)
         END DO

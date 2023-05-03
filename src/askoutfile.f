@@ -17,9 +17,10 @@ C
 C You should have received a copy of the GNU General Public License
 C along with BoundFit. If not, see <http://www.gnu.org/licenses/>.
 C------------------------------------------------------------------------------
-        SUBROUTINE ASKOUTFILE(OUTFILE)
+        SUBROUTINE ASKOUTFILE(OUTFILE,FSTATUS)
         IMPLICIT NONE
         CHARACTER*(*) OUTFILE
+        CHARACTER*3 FSTATUS
 C
         INTEGER TRUEBEG
         INTEGER TRUELEN
@@ -33,6 +34,7 @@ C
         COMMON/BLKLECHO/LECHO
 C------------------------------------------------------------------------------
         LOGFILE=.TRUE.
+        FSTATUS='NEW'
         DO WHILE(LOGFILE)
           WRITE(*,100) 'Output ASCII file name......................'
           OUTFILE=READC_B('@','@')
@@ -49,6 +51,7 @@ C------------------------------------------------------------------------------
             IF(LECHO) WRITE(*,101) COVERWRITE
             IF((COVERWRITE.EQ.'y').OR.(COVERWRITE.EQ.'Y'))THEN
               LOGFILE=.FALSE.
+              FSTATUS='OLD'
             END IF
           END IF
         END DO
